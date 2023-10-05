@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan, Moritz Firsching
 -/
 import Mathlib.RingTheory.WittVector.Compare
-
+import Mathlib.Data.Opposite
 --import Mathlib.Data.ZMod.Basic
 --import nat_properties
 
@@ -15,7 +15,7 @@ This file defines a topological structure (the discrete topology) on `ZMod n` fo
 We also enlist several properties that are helpful with modular arithmetic.
 
 ## Main definitions and theorems
- * `ZMod.topological_space`
+ * `ZMod.TopologicalSpace`
  * `proj_fst`, `proj_snd`, `inv_fst`, `inv_snd` : lemmas regarding CRT
  * `castHom_apply'` : a version of `castHom_apply` where `R` is explicit
  * `induced_top_cont_inv` : Inverse function on the units is continuous
@@ -30,10 +30,20 @@ TODO (optional)
 ZMod
 -/
 
-/-- Making `ZMod` a discrete topological space. -/
-local instance ZMod.TopologicalSpace (d : ℕ) : TopologicalSpace (ZMod d) := ⊥
+namespace Nat
+lemma pos_of_NeZero (n : ℕ) [NeZero n] : 0 < n := Nat.pos_of_ne_zero (NeZero.ne _)
 
---local attribute [instance] ZMod.topological_space
+-- this is from nat_properties, not sure if it has already been PRd under a different name
+lemma dvd_sub_symm (a b n : ℤ) (h : n ∣ a - b) : n ∣ b - a := dvd_neg.mp (by simp [h])
+end Nat
+
+/-- Making `ZMod` a discrete topological space. -/
+instance {d : ℕ} : TopologicalSpace (ZMod d) := ⊥
+
+instance {d : ℕ} : DiscreteTopology (ZMod d) := { eq_bot := rfl }
+
+-- making these instances for now to simplify life, ideally it should be a local instance or make the next line work, dont know the right translation in Lean 4
+--local attribute [instance] ZMod.TopologicalSpace
 
 variable {p : ℕ} {d : ℕ}
 open ZMod
@@ -147,7 +157,7 @@ open Nat
 lemma zero_le_div_and_div_lt_one {n : ℕ} [NeZero n] (x : ZMod n) :
   0 ≤ (x.val : ℚ) / n ∧ (x.val : ℚ) / n < 1 :=
 ⟨div_nonneg (cast_le.2 (Nat.zero_le _)) (cast_le.2 (Nat.zero_le _)), (div_lt_one
-  (Nat.cast_pos.2 (Nat.pos_of_ne_zero (NeZero.ne _)))).2 -- this does not work?
+  (Nat.cast_pos.2 (Nat.pos_of_NeZero _))).2 -- this does not work?
     (cast_lt.2 (ZMod.val_lt _))⟩
 
 lemma coe_add_eq_pos' {n : ℕ} {a b : ZMod n} (h : (a + b : ℤ) < n) :
@@ -203,107 +213,107 @@ by
   simp -- proof got shorter!
 
 lemma cast_eq_of_dvd {m n : ℕ} (h : m ∣ n) (a : ZMod m) : ((a : ZMod n) : ZMod m) = a :=
-by
-  conv_rhs => { rw [←ZMod.RingHom_map_cast (ZMod.castHom h (ZMod m)) a] }
-  rw [ZMod.castHom_apply]
+by conv_rhs => { rw [←ZMod.ringHom_map_cast (ZMod.castHom h (ZMod m)) a] } -- shouldnt this lemma be named RingHom..
 
-lemma fract_eq_val {n : ℕ} [h : Fact (0 < n)] (a : ZMod n) :
-  int.fract ((a : ℚ) / n) = (a.val : ℚ) / n :=
-int.fract_eq_iff.2 ⟨div_nonneg (ZMod.val a).cast_nonneg n.cast_nonneg,
-  ⟨(div_lt_one ((@cast_pos ℚ _ _ _).2 (fact_iff.1 infer_instance))).2
-  (cast_lt.2 (ZMod.val_lt _)), ⟨0, by { rw [←ZMod.nat_cast_val, sub_self, int.cast_zero], }⟩⟩⟩
+lemma fract_eq_val {n : ℕ} [NeZero n] (a : ZMod n) :
+  Int.fract ((a : ℚ) / n) = (a.val : ℚ) / n :=
+Int.fract_eq_iff.2 ⟨div_nonneg (ZMod.val a).cast_nonneg n.cast_nonneg,
+  ⟨(div_lt_one ((@cast_pos ℚ _ _ _).2 (Nat.pos_of_ne_zero (NeZero.ne _)))).2
+  (cast_lt.2 (ZMod.val_lt _)), ⟨0, by { rw [←ZMod.nat_cast_val, sub_self, Int.cast_zero] }⟩⟩⟩
 
 /-- Same as `ZMod.castHom_apply` with some hypotheses being made explicit. -/
-lemma castHom_apply' {n : ℕ} (R : Type*) [_inst_1 : ring R] {m : ℕ} [_inst_2 : char_p R m]
+lemma castHom_apply' {n : ℕ} (R : Type*) [Ring R] {m : ℕ} [CharP R m]
   (h : m ∣ n) (i : ZMod n) : (castHom h R) i = ↑i := castHom_apply i
 
-lemma coe_map_of_dvd {a b : ℕ} (h : a ∣ b) (x : units (ZMod b)) :
-  is_unit (x : ZMod a) :=
+lemma coe_map_of_dvd {a b : ℕ} (h : a ∣ b) (x : Units (ZMod b)) :
+  IsUnit (x : ZMod a) :=
 by
-  change is_unit ((x : ZMod b) : ZMod a),
-  rw [←ZMod.castHom_apply' (ZMod a) h (x : ZMod b), ←RingHom.coe_monoid_hom, ←units.coe_map],
-  apply units.is_unit,
-end
+  change IsUnit ((x : ZMod b) : ZMod a)
+  rw [←ZMod.castHom_apply' (ZMod a) h (x : ZMod b), ←MonoidHom.coe_coe, ←Units.coe_map]
+  apply Units.isUnit
 
-lemma is_unit_of_is_coprime_dvd {a b : ℕ} (h : a ∣ b) {x : ℕ} (hx : x.Coprime b) :
-  is_unit (x : ZMod a) :=
+lemma IsUnit_of_is_coprime_dvd {a b : ℕ} (h : a ∣ b) {x : ℕ} (hx : x.Coprime b) :
+  IsUnit (x : ZMod a) :=
 by
-  convert_to is_unit ((ZMod.unit_of_coprime _ hx : ZMod b) : ZMod a),
-  { rw ←cast_nat_cast h x,
-    { congr, },
-    { refine ZMod.char_p _, }, },
-    { apply coe_map_of_dvd h _, },
-end
+  convert_to IsUnit ((ZMod.unitOfCoprime _ hx : ZMod b) : ZMod a)
+  · rw [←cast_nat_cast h x]
+    congr
+  apply coe_map_of_dvd h _
 
-lemma is_unit_mul {a b g : ℕ} (n : ℕ) (h1 : g.Coprime a) (h2 : g.Coprime b) :
-  is_unit (g : ZMod (a * b^n)) :=
-is_unit_of_is_coprime_dvd dvd_rfl ((coprime.mul_right h1 (coprime.pow_right _ h2)))
+lemma IsUnit_mul {a b g : ℕ} (n : ℕ) (h1 : g.Coprime a) (h2 : g.Coprime b) :
+  IsUnit (g : ZMod (a * b^n)) :=
+IsUnit_of_is_coprime_dvd dvd_rfl ((Nat.Coprime.mul_right h1 (Nat.Coprime.pow_right _ h2)))
 
 lemma cast_inv {a m n : ℕ} (ha : a.Coprime n) (h : m ∣ n) :
   (((a : ZMod n)⁻¹ : ZMod n) : ZMod m) = ((a : ZMod n) : ZMod m)⁻¹ :=
 by
-  change ((((ZMod.unit_of_coprime a ha)⁻¹ : units (ZMod n)) : ZMod n) : ZMod m) = _,
-  have h1 : ∀ c : (ZMod m)ˣ, (c : ZMod m)⁻¹ = ((c⁻¹ : units (ZMod m)) : ZMod m),
-  { intro c, simp only [inv_coe_unit], },
-  rw [← ZMod.castHom_apply' (ZMod m) h _, ← RingHom.coe_monoid_hom,
-    ← units.coe_map_inv _ (ZMod.unit_of_coprime a ha), ← h1],
-  congr,
-end
+  change ((((ZMod.unitOfCoprime a ha)⁻¹ : Units (ZMod n)) : ZMod n) : ZMod m) = _
+  have h1 : ∀ c : (ZMod m)ˣ, (c : ZMod m)⁻¹ = ((c⁻¹ : Units (ZMod m)) : ZMod m)
+  · intro c
+    simp only [inv_coe_unit]
+  rw [← ZMod.castHom_apply' (ZMod m) h _, ← MonoidHom.coe_coe,
+    ← Units.coe_map_inv _ (ZMod.unitOfCoprime a ha), ← h1]
+  congr
 
 lemma fract_eq_of_ZMod_eq {n a b : ℕ} [Fact (0 < n)] (h : (a : ZMod n) = (b : ZMod n)) :
-  int.fract (a / n : ℚ) = int.fract (b / n : ℚ) :=
+  Int.fract (a / n : ℚ) = Int.fract (b / n : ℚ) :=
 by
-  rw [int.fract_eq_fract, div_sub_div_same],
-  obtain ⟨z, hz⟩ := dvd_sub_symm _ _ _ (modeq_iff_dvd.1 ((eq_iff_modeq_nat _).1 h)),
-  refine ⟨z, _⟩,
-  have h : ∀ z : ℕ, (z : ℚ) = ((z : ℤ) : ℚ),
-  { intro z, norm_cast, },
-  rw [h a, h b, ← int.cast_sub, hz, int.cast_mul, ← h n, mul_comm, mul_div_cancel],
-  norm_cast,
-  apply ne_of_gt (Fact.out _),
-  any_goals { apply_instance, },
-end
+  rw [Int.fract_eq_fract, div_sub_div_same]
+  obtain ⟨z, hz⟩ := dvd_sub_symm _ _ _ (modEq_iff_dvd.1 ((eq_iff_modEq_nat _).1 h))
+  refine' ⟨z, _⟩
+  have h : ∀ z : ℕ, (z : ℚ) = ((z : ℤ) : ℚ)
+  { intro z 
+    norm_cast }
+  rw [h a, h b, ← Int.cast_sub, hz, Int.cast_mul, ← h n, mul_comm, mul_div_cancel]
+  norm_cast
+  apply Nat.ne_of_gt Fact.out
 
-lemma dvd_val_sub_cast_val {m : ℕ} (n : ℕ) [Fact (0 < m)] [Fact (0 < n)] (a : ZMod m) :
+lemma dvd_val_sub_cast_val {m : ℕ} (n : ℕ) [NeZero m] [NeZero n] (a : ZMod m) :
   n ∣ a.val - (a : ZMod n).val :=
 by
-  have : (a.val : ZMod n) = ((a : ZMod n).val : ZMod n),
-  { rw [nat_cast_val, nat_cast_val], norm_cast, },
-  exact (dvd_iff_mod_eq_zero _ _).2 (sub_mod_eq_zero_of_mod_eq ((eq_iff_modeq_nat _).1 this)),
-end
+  have : (a.val : ZMod n) = ((a : ZMod n).val : ZMod n)
+  · rw [nat_cast_val, nat_cast_val] 
+    norm_cast
+  exact (dvd_iff_mod_eq_zero _ _).2 (sub_mod_eq_zero_of_mod_eq ((eq_iff_modEq_nat _).1 this))
 
 --instance {p : ℕ} [Fact (Nat.prime p)] [Fact (2 < p)] : nontrivial (units (ZMod p)) :=
 --fintype.one_lt_card_iff_nontrivial.mp ((ZMod.card_units p).symm ▸ lt_tsub_iff_right.mpr (Fact.out _))
 
 @[continuity]
-lemma induced_top_cont_inv {n : ℕ} : @continuous _ _ (topological_space.induced
-  (units.coe_hom (ZMod n)) infer_instance) _ (units.inv : (ZMod n)ˣ → ZMod n) :=
-by { convert continuous_of_discrete_topology,
-  refine discrete_topology_induced (λ a b h, units.eq_iff.1 h), }
-
-instance {α : Type*} [_root_.topological_space α] : _root_.topological_space αᵒᵖ :=
-topological_space.induced opposite.unop infer_instance
-
-instance {α : Type*} [_root_.topological_space α] [discrete_topology α] : discrete_topology αᵒᵖ :=
-discrete_topology_induced opposite.unop_injective
-
-instance {α : Type*} [_root_.topological_space α] [discrete_topology α] : discrete_topology αᵐᵒᵖ :=
-discrete_topology_induced mul_opposite.unop_injective
-
-instance {k : ℕ} : discrete_topology (units (ZMod k)) :=
+-- why is ZMod not recognized as a TopSpace? should the instance be a global one?
+lemma induced_top_cont_inv {n : ℕ} : @Continuous _ _ (TopologicalSpace.induced
+  (Units.coeHom (ZMod n)) inferInstance) _ (Units.inv : (ZMod n)ˣ → ZMod n) :=
 by
-  convert @discrete_topology_induced _ _ _ _ _ (units.embed_Product_injective _),
-  apply @Prod.discrete_topology _ _ infer_instance infer_instance infer_instance infer_instance,
-  swap, apply discrete_topology_induced mul_opposite.unop_injective,
+  convert continuous_of_discreteTopology
+--  convert @Units.instDiscreteTopology (ZMod n) _ _ _  
+  
+  refine' DiscreteTopology.of_continuous_injective _ _
+
+  refine DiscreteTopology_induced (λ a b h => units.eq_iff.1 h)
+
+instance {α : Type*} [_root_.TopologicalSpace α] : _root_.TopologicalSpace (Opposite α) :=
+TopologicalSpace.induced Opposite.unop inferInstance
+
+instance {α : Type*} [_root_.TopologicalSpace α] [DiscreteTopology α] : DiscreteTopology αᵒᵖ :=
+DiscreteTopology_induced opposite.unop_injective
+
+instance {α : Type*} [_root_.TopologicalSpace α] [DiscreteTopology α] : DiscreteTopology αᵐᵒᵖ :=
+DiscreteTopology_induced mul_opposite.unop_injective
+
+instance {k : ℕ} : DiscreteTopology (units (ZMod k)) :=
+by
+  convert @DiscreteTopology_induced _ _ _ _ _ (units.embed_Product_injective _),
+  apply @Prod.DiscreteTopology _ _ infer_instance infer_instance infer_instance infer_instance,
+  swap, apply DiscreteTopology_induced mul_opposite.unop_injective,
   any_goals { apply_instance, },
 end
 
-instance disc_top_units {m n : ℕ} : discrete_topology (units (ZMod m × ZMod n)) :=
+instance disc_top_units {m n : ℕ} : DiscreteTopology (units (ZMod m × ZMod n)) :=
 by
-  apply discrete_topology_induced (λ x y h, _),
-  { apply Prod.discrete_topology, },
+  apply DiscreteTopology_induced (λ x y h, _),
+  { apply Prod.DiscreteTopology, },
   { rw units.embed_Product at h,
-    simp only [Prod.mk.inj_iff, opposite.op_inj_iff, monoid_hom.coe_mk] at h,
+    simp only [Prod.mk.inj_iff, opposite.op_inj_iff, monoidHom.coe_mk] at h,
     rw [units.ext_iff, h.1], },
 end
 
@@ -318,7 +328,7 @@ RingHom.ext_ZMod _ _
 lemma val_le_self (a n : ℕ) : (a : ZMod n).val ≤ a :=
 by
   cases n,
-  { simp only [int.nat_cast_eq_coe_nat], refl, },
+  { simp only [Int.nat_cast_eq_coe_nat], refl, },
   { by_cases a < n.succ,
     rw ZMod.val_cast_of_lt h,
     apply le_trans (ZMod.val_le _) _,
@@ -326,25 +336,25 @@ by
     { apply le_of_not_gt h, }, },
 end
 
---`not_is_unit_of_not_coprime` changed to `ZMod.Coprime_of_is_unit`
-lemma coprime_of_is_unit {m a : ℕ} (ha : is_unit (a : ZMod m)) : Nat.Coprime a m :=
+--`not_IsUnit_of_not_coprime` changed to `ZMod.Coprime_of_IsUnit`
+lemma coprime_of_IsUnit {m a : ℕ} (ha : IsUnit (a : ZMod m)) : Nat.Coprime a m :=
 by
-  have f := ZMod.val_coe_unit_coprime (is_unit.unit ha),
-  rw is_unit.unit_spec at f,
+  have f := ZMod.val_coe_unit_coprime (IsUnit.unit ha),
+  rw IsUnit.unit_spec at f,
   have : m ∣ (a - (a : ZMod m).val),
   { rw ← ZMod.nat_coe_ZMod_eq_zero_iff_dvd,
     rw Nat.cast_sub (ZMod.val_le_self _ _),
     rw sub_eq_zero,
     cases m,
-    { simp only [int.coe_nat_inj', int.nat_cast_eq_coe_nat], refl, },
+    { simp only [Int.coe_nat_inj', Int.nat_cast_eq_coe_nat], refl, },
     { rw ZMod.nat_cast_val, simp only [ZMod.cast_nat_cast'], }, },
   cases this with y hy,
   rw Nat.sub_eq_iff_eq_add _ at hy,
   { rw hy, rw add_comm, rw ← Nat.is_coprime_iff_coprime,
-    simp only [int.coe_nat_add, int.coe_nat_mul],
+    simp only [Int.coe_nat_add, Int.coe_nat_mul],
     rw is_coprime.add_mul_left_left_iff,
     rw Nat.is_coprime_iff_coprime,
-    convert ZMod.val_coe_unit_coprime (is_unit.unit ha), },
+    convert ZMod.val_coe_unit_coprime (IsUnit.unit ha), },
   { apply ZMod.val_le_self, },
 end
 
@@ -376,10 +386,10 @@ by
   rw ZMod.int_cast_cast, rw RingEquiv.inv_fun_eq_symm, convert proj_snd' _ _ _,
 end
 
-lemma is_unit_of_is_unit_mul {m n : ℕ} (x : ℕ) (hx : is_unit (x : ZMod (m * n))) :
-  is_unit (x : ZMod m) :=
+lemma IsUnit_of_IsUnit_mul {m n : ℕ} (x : ℕ) (hx : IsUnit (x : ZMod (m * n))) :
+  IsUnit (x : ZMod m) :=
 by
-  rw is_unit_iff_dvd_one at *,
+  rw IsUnit_iff_dvd_one at *,
   cases hx with k hk,
   refine ⟨(k : ZMod m), _⟩,
   rw ← ZMod.cast_nat_cast (dvd_mul_right m n),
@@ -388,64 +398,64 @@ by
   any_goals { refine ZMod.char_p _, },
 end
 
-lemma is_unit_of_is_unit_mul' {m n : ℕ} (x : ℕ) (hx : is_unit (x : ZMod (m * n))) :
-  is_unit (x : ZMod n) :=
+lemma IsUnit_of_IsUnit_mul' {m n : ℕ} (x : ℕ) (hx : IsUnit (x : ZMod (m * n))) :
+  IsUnit (x : ZMod n) :=
 by
   rw mul_comm at hx,
-  apply is_unit_of_is_unit_mul x hx,
+  apply IsUnit_of_IsUnit_mul x hx,
 end
 
 open ZMod
-lemma is_unit_of_is_unit_mul_iff {m n : ℕ} (x : ℕ) : is_unit (x : ZMod (m * n)) ↔
-  is_unit (x : ZMod m) ∧ is_unit (x : ZMod n) :=
-  ⟨λ h, ⟨is_unit_of_is_unit_mul x h, is_unit_of_is_unit_mul' x h⟩,
+lemma IsUnit_of_IsUnit_mul_iff {m n : ℕ} (x : ℕ) : IsUnit (x : ZMod (m * n)) ↔
+  IsUnit (x : ZMod m) ∧ IsUnit (x : ZMod n) :=
+  ⟨λ h, ⟨IsUnit_of_IsUnit_mul x h, IsUnit_of_IsUnit_mul' x h⟩,
   by
     rintros ⟨h1, h2⟩,
-    apply units.is_unit (ZMod.unit_of_coprime x (Nat.Coprime.mul_right
-      (coprime_of_is_unit h1) (coprime_of_is_unit h2))),
+    apply units.IsUnit (ZMod.unitOfCoprime x (Nat.Coprime.mul_right
+      (coprime_of_IsUnit h1) (coprime_of_IsUnit h2))),
   end ⟩ -- solve_by_elim gives a funny error
 
-lemma not_is_unit_of_not_is_unit_mul {m n x : ℕ} (hx : ¬ is_unit (x : ZMod (m * n))) :
-  ¬ is_unit (x : ZMod m) ∨ ¬ is_unit (x : ZMod n) :=
+lemma not_IsUnit_of_not_IsUnit_mul {m n x : ℕ} (hx : ¬ IsUnit (x : ZMod (m * n))) :
+  ¬ IsUnit (x : ZMod m) ∨ ¬ IsUnit (x : ZMod n) :=
 by
   rw ← not_and_distrib,
   contrapose hx,
   rw not_not at *,
-  rw is_unit_of_is_unit_mul_iff, refine ⟨hx.1, hx.2⟩,
+  rw IsUnit_of_IsUnit_mul_iff, refine ⟨hx.1, hx.2⟩,
 end
 
-lemma not_is_unit_of_not_is_unit_mul' {m n : ℕ} [Fact (0 < m * n)] (x : ZMod (m * n))
-  (hx : ¬ is_unit x) : ¬ is_unit (x : ZMod m) ∨ ¬ is_unit (x : ZMod n) :=
+lemma not_IsUnit_of_not_IsUnit_mul' {m n : ℕ} [Fact (0 < m * n)] (x : ZMod (m * n))
+  (hx : ¬ IsUnit x) : ¬ IsUnit (x : ZMod m) ∨ ¬ IsUnit (x : ZMod n) :=
 by
   rw ← ZMod.cast_id _ x at hx,
   rw ← ZMod.nat_cast_val at hx,
   rw ← ZMod.nat_cast_val, rw ← ZMod.nat_cast_val,
-  apply not_is_unit_of_not_is_unit_mul hx,
+  apply not_IsUnit_of_not_IsUnit_mul hx,
 end
 
-lemma is_unit_val_of_unit {n k : ℕ} [Fact (0 < n)] (hk : k ∣ n) (u : (ZMod n)ˣ) :
-  is_unit ((u : ZMod n).val : ZMod k) :=
-by { apply ZMod.is_unit_of_is_coprime_dvd hk, --rw Nat.is_coprime_iff_coprime,
-  apply coprime_of_is_unit,
-  rw ZMod.nat_cast_val, rw ZMod.cast_id, apply units.is_unit _, }
+lemma IsUnit_val_of_unit {n k : ℕ} [Fact (0 < n)] (hk : k ∣ n) (u : (ZMod n)ˣ) :
+  IsUnit ((u : ZMod n).val : ZMod k) :=
+by { apply ZMod.IsUnit_of_is_coprime_dvd hk, --rw Nat.is_coprime_iff_coprime,
+  apply coprime_of_IsUnit,
+  rw ZMod.nat_cast_val, rw ZMod.cast_id, apply units.IsUnit _, }
 
 lemma unit_ne_zero {n : ℕ} [Fact (1 < n)] (a : (ZMod n)ˣ) : (a : ZMod n).val ≠ 0 :=
 by
   intro h,
   rw ZMod.val_eq_zero at h,
-  have : is_unit (0 : ZMod n),
+  have : IsUnit (0 : ZMod n),
   { rw ← h, simp, },
-  rw is_unit_zero_iff at this,
+  rw IsUnit_zero_iff at this,
   apply @zero_ne_one _ _ _,
   rw this,
   apply ZMod.nontrivial,
 end
 
-lemma inv_is_unit_of_is_unit {n : ℕ} {u : ZMod n} (h : is_unit u) : is_unit u⁻¹ :=
+lemma inv_IsUnit_of_IsUnit {n : ℕ} {u : ZMod n} (h : IsUnit u) : IsUnit u⁻¹ :=
 by
-  have h' := is_unit_iff_dvd_one.1 h,
+  have h' := IsUnit_iff_dvd_one.1 h,
   cases h' with k h',
-  rw is_unit_iff_dvd_one,
+  rw IsUnit_iff_dvd_one,
   refine ⟨u, _⟩,
   rw ZMod.inv_mul_of_unit u h,
 end
