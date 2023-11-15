@@ -32,12 +32,16 @@ lemma Continuous {R : Type} [CommMonoidWithZero R] [TopologicalSpace R]
 lemma toUnitHom_continuous {R : Type} [CommMonoidWithZero R] [TopologicalSpace R]
   {n : ℕ} (χ : DirichletCharacter R n) : _root_.Continuous χ.toUnitHom := continuous_of_discreteTopology
 
-example {R : Type} [MonoidWithZero R] [NormedGroup R] : NormedAddCommGroup R := by infer_instance
+example {n : Nat} [NeZero n] : CompactSpace (ZMod n) := inferInstance
 
-example {n : Nat} [NeZero n] [MonoidWithZero R] [NormedGroup R] (n : ℕ) : Norm C(ZMod n, R) := by infer_instance
+example {R : Type} [MonoidWithZero R] [NormedGroup R] : NormedAddCommGroup R := by library_search
 
+example {n : Nat} [NeZero n] [MonoidWithZero R] [NormedGroup R] (n : ℕ) : Norm C(ZMod n, R) := by refine
+  NonUnitalSeminormedRing.toNorm
+
+-- `normed_group` was changed to `normed_add_comm_group`
 lemma asso_DirichletCharacter_bounded {R : Type} [CommMonoidWithZero R]
-  [NormedGroup R] {n : ℕ} [NeZero n] (χ : DirichletCharacter R n) : ∃ M : ℝ,
+  [NormedAddCommGroup R] {n : ℕ} [NeZero n] (χ : DirichletCharacter R n) : ∃ M : ℝ,
   ‖(⟨χ, Continuous χ⟩ : C(ZMod n, R))‖ < M :=
 by
   refine ⟨(⨆ i : ZMod n, ‖asso_DirichletCharacter χ i‖) + 1, _⟩,
@@ -167,18 +171,18 @@ lemma reduction {S : Type} [CommMonoidWithZero S] {m : ℕ}
   ψ.reduction a = ψ a :=
 by
   by_cases h' : isUnit (a : ZMod m)
-  { conv_rhs => 
+  { conv_rhs =>
       rw [Factors_through.spec ψ (conductor.Factors_through ψ)]
     rw [change_level.asso_DirichletCharacter_eq' _ _ h']
     apply congr
     { congr }
     { rw [ZMod.cast_nat_cast _]
-      swap 
+      swap
       { refine' ZMod.char_p _ }
       { apply conductor.dvd_lev _ } } }
   { repeat { rw [asso_DirichletCharacter_eq_zero] }
     { assumption }
-    rw [(is_primitive_def _).1 h] 
+    rw [(is_primitive_def _).1 h]
     apply h' }
 
 end asso_DirichletCharacter
