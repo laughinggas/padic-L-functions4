@@ -26,7 +26,7 @@ by
 
 lemma reduction_isPrimitive : isPrimitive (reduction χ) :=
 by
-  by_cases χ.conductor = 0
+  by_cases h : χ.conductor = 0
   { rw [isPrimitive_def]
     conv_rhs => rw [h]
     rw [conductor_eq_zero_iff_level_eq_zero, h] }
