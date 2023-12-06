@@ -8,7 +8,7 @@ import PadicLFunctions4.ZModProp
 import Mathlib.Analysis.NormedSpace.Basic
 import Mathlib.Topology.Algebra.Group.Compact
 import Mathlib.Topology.ContinuousFunction.Compact
-import PadicLFunctions4.Basic
+--import PadicLFunctions4.Basic
 
 /-!
 # Dirichlet characters
@@ -51,7 +51,7 @@ by
   simp only [Set.mem_insert_iff, Set.mem_range, Set.mem_singleton_iff]
   refine' ⟨λ h => _, λ h => _⟩
   { cases' h with y hy
-    by_cases IsUnit y
+    by_cases h : IsUnit y
     { suffices h' : y = 1 ∨ y = -1
       { cases' h' with h1 h2
         { rw [h1] at hy
@@ -139,7 +139,7 @@ by
       _ _ this, changeLevel.asso_DirichletCharacter_eq' _ _ this, ZMod.cast_nat_cast
       (dvd_lcm_left n m), ZMod.cast_nat_cast (dvd_lcm_right n m)]
     any_goals { refine' ZMod.char_p _ } }
-  { refine ZMod.char_p _ }
+--  { refine ZMod.char_p _ }
 
 lemma eval_mul_sub {R : Type} [CommMonoidWithZero R] {n : ℕ} (χ : DirichletCharacter R n)
   (k x : ℕ) : χ (k * n - x) = χ (-1) * χ x :=

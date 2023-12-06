@@ -101,7 +101,7 @@ lemma inv_snd {n : ℕ} (x : ZMod (d * p^n)) (cop : d.Coprime (p^n)) :
 -- changed [fact (0 < m)] to [NeZero m], similar trend followed throughout
 lemma val_coe_val_le_val {n m : ℕ} [NeZero m] (y : ZMod n) : (y.val : ZMod m).val ≤ y.val :=
 by
-  by_cases y.val < m
+  by_cases h : y.val < m
   { rw [ZMod.val_cast_of_lt h] }
   { apply le_of_lt (gt_of_ge_of_gt (not_lt.1 h) (ZMod.val_lt (y.val : ZMod m))) }
 
@@ -287,7 +287,7 @@ by
   induction n with
   | zero => exact Nat.le_refl (val (a : ZMod 0))
   | succ x' =>
-    by_cases a < x'.succ
+    by_cases h : a < x'.succ
     · rw [ZMod.val_cast_of_lt h]
     · apply le_trans (ZMod.val_le _) (le_of_not_gt h)
 
@@ -310,7 +310,7 @@ by rw [←ZMod.cast_nat_cast h, ZMod.nat_cast_self, ZMod.cast_zero]
 
 instance units_fintype (n : ℕ) : Fintype (ZMod n)ˣ :=
 by
-  by_cases n = 0
+  by_cases h : n = 0
   · rw [h]
     refine UnitsInt.fintype
   · haveI : NeZero n := neZero_iff.2 h
