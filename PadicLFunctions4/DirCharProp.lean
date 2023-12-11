@@ -123,23 +123,52 @@ lemma bound_pos {R : Type} [CommMonoidWithZero R] [SeminormedAddGroup R] {n : �
   (χ : DirichletCharacter R n) : 0 < DirichletCharacter.bound χ :=
 (Classical.choose_spec (DirichletCharacter.Bounded_spec χ)).2
 
+lemma changeLevel_eq_cast_of_dvd_of_IsUnit {R : Type} [CommMonoidWithZero R] {n : ℕ}
+  (χ : DirichletCharacter R n) {m : ℕ} (hm : n ∣ m) {a : (ZMod m)} (ha : IsUnit a) :
+    (changeLevel hm χ) a = χ a := by
+  rw [← IsUnit.unit_spec ha, changeLevel_eq_cast_of_dvd]
+
 open ZMod FactorsThrough
+lemma primitive_spec {R : Type} [CommMonoidWithZero R] {n : ℕ}
+  (χ : DirichletCharacter R n) : χ = changeLevel (conductor_dvd_level χ) (primitiveCharacter χ) :=
+  Classical.choose_spec (factorsThrough_conductor χ).choose_spec
+
+lemma primitive_mul_eval_of_coprime {R : Type} [CommMonoidWithZero R] {n m : ℕ}
+  (χ : DirichletCharacter R n) (ψ : DirichletCharacter R m) {a : ℕ} (ha : a.Coprime (n * m)) :
+  (primitive_mul χ ψ) a = χ a * (ψ a) :=
+by
+  rw [mul_def, mul, ←(ZMod.cast_nat_cast (conductor_dvd_level (changeLevel (dvd_lcm_left n m) χ *
+    changeLevel (dvd_lcm_right n m) ψ)) a)] -- the `mul` def needs to be unfolded in order to change the level of the character
+  have dvd : lcm n m ∣ n * m := lcm_dvd_iff.2 ⟨(dvd_mul_right _ _), (dvd_mul_left _ _)⟩
+  have := ZMod.IsUnit_of_is_coprime_dvd dvd ha
+  rw [← changeLevel_eq_cast_of_dvd_of_IsUnit _ (conductor_dvd_level (changeLevel _ χ * changeLevel _ ψ)) this] -- this is appropriate translation of `changeLevel.asso_DirichletCharacter_eq'`
+  delta primitiveCharacter
+  --delta χ₀
+  rw [←(Classical.choose_spec (factorsThrough_conductor (changeLevel _ χ * changeLevel _ ψ)).choose_spec)]--,
+  simp only [MulChar.coeToFun_mul, Pi.mul_apply] -- alternative to MonoidHom.mul_apply, there should be an easier way to do this
+  conv_rhs =>
+  { rw [← ZMod.cast_nat_cast (dvd_lcm_left n m)]
+    congr
+    · skip
+    rw [← ZMod.cast_nat_cast (dvd_lcm_right n m)] }
+  rw [← changeLevel_eq_cast_of_dvd_of_IsUnit _ (Nat.dvd_lcm_left n m) this, ← changeLevel_eq_cast_of_dvd_of_IsUnit _ (Nat.dvd_lcm_right n m) this]
+  rfl -- why is it unable to decipher `rfl` by itself? Also, why is the argument not working the other (more direct) way round, ie why cant i use `changeLevel_eq_cast_of_dvd_of_IsUnit` the normal way
+
+-- dont know if this lemma is needed, might be better to add primitive_mul χ ψ a = mul χ ψ a? dont know if that lemma is needed either
 lemma mul_eval_of_coprime {R : Type} [CommMonoidWithZero R] {n m : ℕ}
   (χ : DirichletCharacter R n) (ψ : DirichletCharacter R m) {a : ℕ} (ha : a.Coprime (n * m)) :
   (mul χ ψ) a = χ a * (ψ a) :=
 by
-  rw [mul_def, ←(ZMod.cast_nat_cast (conductor_dvd_level (changeLevel (dvd_lcm_left n m) χ *
-    changeLevel (dvd_lcm_right n m) ψ)) a)]
-  { have dvd : lcm n m ∣ n * m := lcm_dvd_iff.2 ⟨(dvd_mul_right _ _), (dvd_mul_left _ _)⟩
-    --have := ZMod.isUnit_of_is_coprime_dvd dvd ha
-    rw [← eq_changeLevel _ (conductor_dvd_level _)]--←changeLevel.asso_DirichletCharacter_eq' _ (conductor_dvd_level _) _]
-    delta reduction
-    rw [←(Factors_through.spec _ (conductor.Factors_through (changeLevel _ χ * changeLevel _ ψ))),
-      asso_DirichletCharacter_mul, Monoid_hom.mul_apply, changeLevel.asso_DirichletCharacter_eq'
-      _ _ this, changeLevel.asso_DirichletCharacter_eq' _ _ this, ZMod.cast_nat_cast
-      (dvd_lcm_left n m), ZMod.cast_nat_cast (dvd_lcm_right n m)]
-    any_goals { refine' ZMod.char_p _ } }
---  { refine ZMod.char_p _ }
+  have dvd : lcm n m ∣ n * m := lcm_dvd_iff.2 ⟨(dvd_mul_right _ _), (dvd_mul_left _ _)⟩
+  have := ZMod.IsUnit_of_is_coprime_dvd dvd ha
+  rw [mul]
+  conv_rhs =>
+    { rw [← ZMod.cast_nat_cast (dvd_lcm_left n m)]
+      congr
+      · skip
+      rw [← ZMod.cast_nat_cast (dvd_lcm_right n m)] }
+  rw [← changeLevel_eq_cast_of_dvd_of_IsUnit _ (Nat.dvd_lcm_left n m) this, ← changeLevel_eq_cast_of_dvd_of_IsUnit _ (Nat.dvd_lcm_right n m) this]
+  rfl
 
 lemma eval_mul_sub {R : Type} [CommMonoidWithZero R] {n : ℕ} (χ : DirichletCharacter R n)
   (k x : ℕ) : χ (k * n - x) = χ (-1) * χ x :=
@@ -152,24 +181,23 @@ by
   { rw [←ZMod.nat_cast_mod, Nat.mod_eq_zero_of_dvd hk, Nat.cast_zero] }
   rw [this, zero_sub, neg_eq_neg_one_mul, map_mul]
 
---`asso_DirichletCharacter_equiv` changed to `asso_DirichletCharacter.reduction`
 -- note that these two cannot be equal since their levels are not the same, according to Lean
-lemma reduction_def {S : Type} [CommMonoidWithZero S] {m : ℕ}
+lemma primitive_def {S : Type} [CommMonoidWithZero S] {m : ℕ}
   (ψ : DirichletCharacter S m) (h : isPrimitive ψ) (a : ℕ) :
-  ψ.reduction a = ψ a := by
+  primitiveCharacter ψ a = ψ a := by
   by_cases h' : IsUnit (a : ZMod m)
   { conv_rhs => rw [eq_changeLevel ψ (factorsThrough_conductor ψ)]
-    rw [reduction]
-    rw [eq_changeLevel _ _]
+    --rw [primitiveCharacter]
+    rw [changeLevel_eq_cast_of_dvd_of_IsUnit _ _ h']
     apply congr
     { congr }
-    { rw [ZMod.cast_nat_cast _]
-      --swap, { refine zmod.char_p _, },
-      { apply conductor.dvd_lev _ } } }
-  { repeat { rw [asso_dirichlet_character_eq_zero] }
-    { assumption }
-    rw [(isPrimitive_def _).1 h]
-    apply h' }
+    { rw [isPrimitive_def] at h
+      rw [h]
+      simp only [cast_nat_cast'] } }
+  { rw [isPrimitive_def] at h
+    rw [MulChar.map_nonunit _ h', MulChar.map_nonunit _ _]
+    rw [← h] at h' -- trying to rw[h] does not work, i dont know why
+    exact h' }
 
 /-- The level at which the Dirichlet character is defined. -/
 --@[nolint unused_arguments] -- this was used to remove linter error
@@ -177,38 +205,38 @@ def lev {R : Type} [CommMonoidWithZero R] {n : ℕ} (χ : DirichletCharacter R n
 -- dont know how to remove this linting error
 
 lemma lev_mul_dvd_lcm {R : Type} [CommMonoidWithZero R] {n k : ℕ} (χ : DirichletCharacter R n)
-  (ψ : DirichletCharacter R k) : lev (mul χ ψ) ∣ lcm n k := dvd_trans (conductor_dvd_level _) dvd_rfl
+  (ψ : DirichletCharacter R k) : lev (primitive_mul χ ψ) ∣ lcm n k := dvd_trans (conductor_dvd_level _) dvd_rfl
 
 lemma lev_mul_dvd_mul_lev {R : Type} [CommMonoidWithZero R] {n k : ℕ} (χ : DirichletCharacter R n)
-  (ψ : DirichletCharacter R k) : lev (mul χ ψ) ∣ n * k :=
+  (ψ : DirichletCharacter R k) : lev (primitive_mul χ ψ) ∣ n * k :=
 dvd_trans (conductor_dvd_level _) (Nat.lcm_dvd_mul _ _)
 
 open DirichletCharacter
 lemma mul_eval_neg_one {R : Type} [CommMonoidWithZero R] {n m : ℕ} [h1 : NeZero n] [h2 : NeZero m]
   (χ : DirichletCharacter R n) (ψ : DirichletCharacter R m) :
-  (DirichletCharacter.mul χ ψ) (-1 : ℤ) =
+  (primitive_mul χ ψ) (-1 : ℤ) =
   χ (-1) * ψ (-1) :=
 by
   have one_le : 1 ≤ n * m := Nat.succ_le_iff.2 (Nat.mul_pos (Nat.pos_of_ne_zero (NeZero.ne _)) (Nat.pos_of_ne_zero (NeZero.ne _)))
-  have f1 : (-1 : ZMod (lev (χ.mul ψ))) = ↑((n * m - 1) : ℕ)
+  have f1 : (-1 : ZMod (lev (χ.primitive_mul ψ))) = ↑((n * m - 1) : ℕ)
   { rw [Nat.cast_sub one_le, (ZMod.nat_cast_zmod_eq_zero_iff_dvd _ _).2 (dvd_trans (conductor_dvd_level _)
       (lcm_dvd (dvd_mul_right _ _) (dvd_mul_left _ _))), zero_sub, Nat.cast_one] }
   rw [Int.cast_neg, Int.cast_one, f1,
-    mul_eval_of_coprime _ _ _]
+    primitive_mul_eval_of_coprime _ _ _]
   simp only [Nat.cast_sub one_le, Nat.cast_sub one_le, Nat.cast_mul, ZMod.nat_cast_self, zero_mul,
     Nat.cast_one, zero_sub, mul_zero]
   aesop
 
 lemma mul_eval_int {R : Type} [CommMonoidWithZero R] {n m : ℕ} [NeZero n] [NeZero m]
   (χ : DirichletCharacter R n) (ψ : DirichletCharacter R m) {a : ℤ}
-  (ha : IsCoprime a (n * m : ℤ)) : (DirichletCharacter.mul χ ψ) a = χ a * ψ a :=
+  (ha : IsCoprime a (n * m : ℤ)) : (DirichletCharacter.primitive_mul χ ψ) a = χ a * ψ a :=
 by
   cases' a with a a
   { simp only [Int.ofNat_eq_coe, Int.cast_ofNat]
-    rw [mul_eval_of_coprime χ ψ (Nat.isCoprime_iff_coprime.1 ha)] }
+    rw [primitive_mul_eval_of_coprime χ ψ (Nat.isCoprime_iff_coprime.1 ha)] }
   { rw [Int.negSucc_eq, IsCoprime.neg_left_iff] at ha
     rw [Int.negSucc_coe, ←neg_one_mul, Int.cast_mul, map_mul, mul_eval_neg_one,
-      Int.cast_ofNat _, mul_eval_of_coprime χ ψ (Nat.isCoprime_iff_coprime.1 ha),
+      Int.cast_ofNat _, primitive_mul_eval_of_coprime χ ψ (Nat.isCoprime_iff_coprime.1 ha),
       mul_mul_mul_comm]
     simp_rw [←map_mul, Int.cast_mul]
     norm_cast }
