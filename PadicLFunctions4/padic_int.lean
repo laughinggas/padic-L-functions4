@@ -171,7 +171,7 @@ Metric.totallyBounded_of_finite_discretization (λ ε hε => by
   have f'' : ↑p ^ (-(m.succ : ℤ)) < (1 : ℝ) / (p^m)
   { rw [div_eq_inv_mul, mul_one, zpow_neg, inv_lt_inv]
     { rw [zpow_coe_nat]
-      apply pow_lt_pow _ (lt_add_one _)
+      apply pow_lt_pow_right _ (lt_add_one _)
       norm_cast
       apply Nat.Prime.one_lt Fact.out }
     any_goals { norm_cast
@@ -442,7 +442,7 @@ lemma not_is_unit_p {n : ℕ} (hn : 1 < n) : ¬ IsUnit (p : ZMod (p^n)) := by
   conv =>
   { congr
     rw [← pow_one p] }
-  rw [pow_lt_pow_iff _]
+  rw [pow_lt_pow_iff_right _]
   apply hn
   apply Nat.Prime.one_lt Fact.out
 
