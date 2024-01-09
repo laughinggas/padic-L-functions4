@@ -29,24 +29,24 @@ lemma asso_primitive_conductor_eq {n : ℕ} (χ : DirichletCharacter R n) :
     χ.primitiveCharacter.conductor = χ.conductor :=
   (isPrimitive_def χ.primitiveCharacter).1 (primitiveCharacter_isPrimitive χ)
 
-/-- Primitive character associated to multiplication of Dirichlet characters,
-  after changing both levels to the same -/
-noncomputable def mul {m : ℕ} (χ₁ : DirichletCharacter R n) (χ₂ : DirichletCharacter R m) :=
-primitiveCharacter (changeLevel (Nat.dvd_lcm_left n m) χ₁ * changeLevel (Nat.dvd_lcm_right n m) χ₂)
+-- /-- Primitive character associated to multiplication of Dirichlet characters,
+--   after changing both levels to the same -/
+-- noncomputable def mul {m : ℕ} (χ₁ : DirichletCharacter R n) (χ₂ : DirichletCharacter R m) :=
+-- primitiveCharacter (changeLevel (Nat.dvd_lcm_left n m) χ₁ * changeLevel (Nat.dvd_lcm_right n m) χ₂)
 
-lemma mul_def {n m : ℕ} {χ : DirichletCharacter R n} {ψ : DirichletCharacter R m} :
-    χ.mul ψ = (changeLevel (Nat.dvd_lcm_left n m) χ *
-    changeLevel (Nat.dvd_lcm_right n m) ψ).primitiveCharacter :=
-  rfl
+-- lemma mul_def {n m : ℕ} {χ : DirichletCharacter R n} {ψ : DirichletCharacter R m} :
+--     χ.mul ψ = (changeLevel (Nat.dvd_lcm_left n m) χ *
+--     changeLevel (Nat.dvd_lcm_right n m) ψ).primitiveCharacter :=
+--   rfl
 
 namespace isPrimitive
-lemma mul {m : ℕ} (ψ : DirichletCharacter R m) : (mul χ ψ).isPrimitive := primitiveCharacter_isPrimitive _
+--lemma mul {m : ℕ} (ψ : DirichletCharacter R m) : (mul χ ψ).isPrimitive := primitiveCharacter_isPrimitive _
 end isPrimitive
 
 --/-- Composition of a Dirichlet character with a multiplicative homomorphism of units. -/
 --abbreviation comp {S : Type*} [comm_monoid_with_zero S] (f : units R →* units S) : DirichletCharacter S n := f.comp χ
 
-variable {S : Type} [CommRing S] {m : ℕ} (ψ : DirichletCharacter S m)
+variable {S : Type*} [CommRing S] {m : ℕ} (ψ : DirichletCharacter S m)
 
 /-- A Dirichlet character is odd if its value at -1 is -1. -/
 def is_odd : Prop := ψ (-1) = -1
