@@ -313,9 +313,8 @@ by
   convert (TopologicalSpace.IsTopologicalBasis.prod
     (@DiscreteTopology.IsTopologicalBasis (ZMod d) _ _ _) (@clopen_basIsClopen p _).1)
   ext V
-  refine' ⟨λ ⟨n, w, h⟩ => ⟨{(w : ZMod d)}, ((toZModPow n) ⁻¹' {↑w}),
-    ⟨(w : ZMod d), Set.singletonMonoidHom_apply _⟩, ⟨n, (w : ZMod (p^n)), rfl⟩, by { rw [h] }⟩, λ hy => _⟩
-  { rcases hy with ⟨x', y', ⟨x, hx⟩, ⟨n, y, hy⟩, h⟩
+  refine' ⟨λ ⟨n, w, h⟩ => ⟨{(w : ZMod d)}, ⟨(w : ZMod d), Set.singletonMonoidHom_apply _⟩, ((toZModPow n) ⁻¹' {↑w}), ⟨n, (w : ZMod (p^n)), rfl⟩, by {rw [h]}⟩, λ hy => _⟩
+  { rcases hy with ⟨x', ⟨x, hx⟩, y', ⟨n, y, hy⟩, h⟩ --⟨x, hx⟩
     set U' : Set (ZMod d × ℤ_[p]) := ({x} : Set (ZMod d)) ×ˢ ((@PadicInt.toZModPow p _ n)⁻¹' {y})
       with hU'
     have hU : U' ∈ clopen_basis' p d
