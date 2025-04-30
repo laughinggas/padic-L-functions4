@@ -148,7 +148,7 @@ def equi_iso_Fin (m : ℕ) (a : ZMod (d * p^m)) : equi_class m.succ a ≃ Fin p 
     --simp only [Nat.cast_add, nat_cast_val, Nat.cast_mul, Nat.cast_pow]
     simp only [_root_.cast_cast]
     rw [mul_assoc]
-    obtain ⟨k, hk, h⟩ := some a x
+    obtain ⟨k, _, h⟩ := some a x
     rw [Nat.div_mul_cancel]
     { rw [← Nat.add_sub_assoc _ _, Nat.add_sub_cancel_left]
       { rw [ZMod.nat_cast_val _]
@@ -190,12 +190,12 @@ lemma ZMod'_succ_eq_bUnion [NeZero d] (m : ℕ) :
     (λ a : ZMod (d * p ^ m) => Set.toFinset ((equi_class m.succ) a)) :=
 Finset.ext (λ y => Iff.trans (by
   simp only [exists_prop, Set.mem_toFinset]
-  refine' ⟨λ h => ⟨(y : ZMod (d * p^m)), _, (equi_class.mem _ _).2 rfl⟩, λ h =>   Finset.mem_univ y⟩
+  refine' ⟨λ _ => ⟨(y : ZMod (d * p^m)), _, (equi_class.mem _ _).2 rfl⟩, λ _ =>   Finset.mem_univ y⟩
   --rw [ZMod']
   apply Finset.mem_univ ) -- why is this a problem
   (Iff.symm Finset.mem_biUnion))
 
-lemma eq [Fact (0 < d)] {m : ℕ} (hd : d.Coprime p)
+lemma eq [NeZero d] {m : ℕ} (hd : d.Coprime p)
   {f : LocallyConstant (ZMod d × ℤ_[p]) R} (h : Classical.choose (le hd f) ≤ m) (x : ZMod (d * p^m))
   (y : ZMod (d * p^m.succ)) (hy : y ∈ Set.toFinset ((equi_class m.succ) x)) : f y = f x :=
 by
@@ -386,7 +386,7 @@ by
     linarith }
   have h4 : (((c : ZMod (d * p^(2 * m.succ)))⁻¹  : ZMod (d * p^(2 * m.succ))) :
     ZMod (d * p^m.succ)).val ≤ (c : ZMod (d * p^(2 * m.succ)))⁻¹.val := val_coe_val_le_val' _
-  refine' Finset.sum_bij (λ a ha => _) (λ a ha => Finset.mem_univ _) (λ a1 a2 ha1 ha2 h => _) _ (λ a ha => _)--(λ a1 a2 ha1 ha2 h => _) _
+  refine' Finset.sum_bij (λ a _ => _) (λ a ha => Finset.mem_univ _) (λ a1 a2 ha1 ha2 h => _) _ (λ a ha => _)--(λ a1 a2 ha1 ha2 h => _) _
   { refine' ⟨(((c : ZMod (d * p^(2*m.succ)))⁻¹).val : ZMod (d * p^m.succ)) * a,
       (equi_class.mem _ _).2 _⟩
     rw [ZMod.cast_mul h1, cast_nat_cast h1 _]
@@ -475,7 +475,7 @@ lemma bernoulli_distribution_sum (x : ZMod (d * p^m)) (hc : c.gcd p = 1) (hc' : 
 by
   rw [←bernoulli_distribution_sum']
   { rw [map_sum]
-    refine' Finset.sum_bij (λ a ha => Subtype.mk a _) (λ a ha => Finset.mem_univ _) (λ a b ha hb h => _) (λ a ha => _) (λ b hb => _)
+    refine' Finset.sum_bij (λ a ha => Subtype.mk a _) (λ a ha => Finset.mem_univ _) (λ a b ha hb h => _) (λ a _ => _) (λ b _ => _)
     { refine' Set.mem_toFinset.1 ha }
     { simp only [Subtype.mk_eq_mk, Subtype.ext_iff, Subtype.coe_mk] at h
       rw [h] }

@@ -42,6 +42,8 @@ open PadicInt ZMod Nat LocallyConstant
   Function on `(ZMod d) × ℤ_[p]`, which is 0 everywhere else. -/
 noncomputable abbrev ind_fn (f : (ZMod d)ˣ × ℤ_[p]ˣ → A) : ZMod d × ℤ_[p] → A :=
 Function.extend (Prod.map (Units.coeHom _) (Units.coeHom _)) f 0
+-- if additional structure is imposed on A, then more structure is possible on ind_fn, as shown below
+
 --set.indicator {z : ZMod d × ℤ_[p] | IsUnit z.1 ∧ IsUnit z.2} f
 -- λ x : (ZMod d × ℤ_[p]), @dite _ (IsUnit x.1 ∧ IsUnit x.2) (classical.dec
 --   (IsUnit x.fst ∧ IsUnit x.snd)) (λ h, f (IsUnit.unit h.1, IsUnit.unit h.2)) (λ h, 0)

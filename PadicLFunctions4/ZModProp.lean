@@ -373,8 +373,7 @@ by
   apply Units.isUnit _
 
 
-lemma unit_ne_zero {n : ℕ} [Fact (1 < n)] (a : (ZMod n)ˣ) : (a : ZMod n).val ≠ 0 := λ h =>
-by
+lemma unit_ne_zero {n : ℕ} [Fact (1 < n)] (a : (ZMod n)ˣ) : (a : ZMod n).val ≠ 0 := λ h => by
   rw [ZMod.val_eq_zero] at h
   have : IsUnit (0 : ZMod n)
   · rw [← h]

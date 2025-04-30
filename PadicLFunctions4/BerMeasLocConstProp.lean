@@ -53,7 +53,7 @@ lemma loc_const_eq_sum_char_fn [Nontrivial R] [NeZero d]
   f = ∑ a in (Finset.range (d * p^n)), f (a) •
   _root_.char_fn R (clopen_from.IsClopen (a : ZMod (d * p^n))) :=
 by
-  set n := (le hd f).choose with hn
+  set n := (le hd f).choose --with hn
   refine' ⟨n, LocallyConstant.ext (λ x => _)⟩
   set x' := Prod_padic_toZMod n x hd with hx'
   rw [LocallyConstant.sum_apply,

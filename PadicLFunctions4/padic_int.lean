@@ -84,7 +84,7 @@ by
 
 /-- The map `toZModPow` is continuous. -/
 lemma continuous_toZModPow (n : ℕ) : Continuous (@toZModPow p _ n) :=
-TopologicalSpace.IsTopologicalBasis.continuous DiscreteTopology.IsTopologicalBasis _
+(TopologicalSpace.IsTopologicalBasis.continuous_iff DiscreteTopology.IsTopologicalBasis).2
   (λ s ⟨x, hx⟩ => by
     change {x} = s at hx
     rw [←hx, preimage_toZModPow, ker_toZModPow]
@@ -379,7 +379,7 @@ by
     exact h.symm }
 
 lemma continuous_toZMod : Continuous (@PadicInt.toZMod p _) :=
-TopologicalSpace.IsTopologicalBasis.continuous DiscreteTopology.IsTopologicalBasis _ (λ s hs => by
+(TopologicalSpace.IsTopologicalBasis.continuous_iff DiscreteTopology.IsTopologicalBasis).2 (λ s hs => by
   cases' hs with x hx
   change {x} = s at hx
   rw [←hx, preimage_toZMod, ker_toZMod]
@@ -429,25 +429,28 @@ lemma proj_lim_preimage_Units_clopen {n : ℕ} (a : (ZMod (p^n))ˣ) :
   continuous_iff_isClosed.mp (continuous_Units n) {a} (isClosed_discrete {a})⟩
 
 variable (p)
-lemma not_is_unit_p {n : ℕ} (hn : 1 < n) : ¬ IsUnit (p : ZMod (p^n)) := by
-  intro h
-  set q : (ZMod (p^n))ˣ := IsUnit.unit h
-  have := ZMod.val_coe_unit_coprime q
-  rw [IsUnit.unit_spec] at this
-  rw [Nat.coprime_pow_right_iff (lt_trans zero_lt_one hn)] at this
-  rw [ZMod.val_cast_of_lt _] at this
-  simp only [Nat.coprime_self] at this
-  apply @Nat.Prime.ne_one p Fact.out
-  rw [this]
-  conv =>
-  { congr
-    rw [← pow_one p] }
-  rw [pow_lt_pow_iff_right _]
-  apply hn
-  apply Nat.Prime.one_lt Fact.out
+lemma not_is_unit_p (n : ℕ) [NeZero n] : ¬ IsUnit (p : ZMod (p^n)) := by
+  cases' eq_or_lt_of_le (Nat.succ_le.2 (Nat.pos_of_ne_zero (NeZero.ne n))) with hn' hn' -- 1 ≤ n
+  · rw [← hn', pow_one]
+    simp only [CharP.cast_eq_zero, isUnit_zero_iff, zero_ne_one, not_false_eq_true]
+  · intro h
+    set q : (ZMod (p^n))ˣ := IsUnit.unit h
+    have := ZMod.val_coe_unit_coprime q
+    rw [IsUnit.unit_spec] at this
+    rw [Nat.coprime_pow_right_iff (lt_trans zero_lt_one hn')] at this
+    rw [ZMod.val_cast_of_lt _] at this
+    simp only [Nat.coprime_self] at this
+    apply @Nat.Prime.ne_one p Fact.out
+    rw [this]
+    conv =>
+    { congr
+      rw [← pow_one p] }
+    rw [pow_lt_pow_iff_right _]
+    apply hn'
+    apply Nat.Prime.one_lt Fact.out
 
-lemma is_unit_toZModPow_of_is_unit {n : ℕ} (hn : 1 < n) (x : ℤ_[p])
-  (hx : IsUnit (toZModPow n x)) : IsUnit x := by
+lemma is_unit_toZModPow_of_is_unit {n : ℕ} [NeZero n] (x : ℤ_[p])
+  (hx : IsUnit (toZModPow n x)) : IsUnit x := by -- (hn : 1 < n)
   rw [PadicInt.isUnit_iff]
   by_contra h
   have hx' := lt_of_le_of_ne (PadicInt.norm_le_one _) h
@@ -457,6 +460,6 @@ lemma is_unit_toZModPow_of_is_unit {n : ℕ} (hn : 1 < n) (x : ℤ_[p])
   rw [RingHom.map_mul] at hx
   rw [IsUnit.mul_iff] at hx
   simp only [map_natCast] at hx
-  apply not_is_unit_p p hn hx.1
+  apply not_is_unit_p p _ hx.1
 
 end PadicInt

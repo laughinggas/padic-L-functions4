@@ -39,7 +39,8 @@ lemma teichmuller_character_root_of_unity (a : Units ℤ_[p]) :
   rw [← map_pow, ← map_pow, PadicInt.unit_pow_eq_one a]
   simp only [map_one]
 
-/-- The Teichmuller character defined on 𝔽ₚ*. -/
+/-- The Teichmuller character defined on 𝔽ₚ*.
+I think this def can be made better. -/
 noncomputable abbrev teichmuller_character_mod_p (p : ℕ) [Fact (Nat.Prime p)] :
   DirichletCharacter ℤ_[p] p :=
 MulChar.ofUnitHom (Units.map (((WittVector.equiv p).toMonoidHom).comp (WittVector.teichmuller p)))
