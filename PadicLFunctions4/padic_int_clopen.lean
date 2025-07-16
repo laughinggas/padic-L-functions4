@@ -33,11 +33,11 @@ noncomputable def char_fn {U : Set X} (hU : IsClopen U) : LocallyConstant X R :=
       rw [IsLocallyConstant.iff_exists_open]
       intro x
       by_cases h : x ∈ U
-      { refine' ⟨U, hU.1, h, _⟩
+      { refine' ⟨U, hU.2, h, _⟩
         rintro y hy
         simp [h, hy] }
       { rw [←Set.mem_compl_iff] at h
-        refine' ⟨Uᶜ, (IsClopen.compl hU).1, h, _⟩
+        refine' ⟨Uᶜ, (IsClopen.compl hU).2, h, _⟩
         rintro y hy
         rw [Set.mem_compl_iff] at h
         rw [Set.mem_compl_iff] at hy
@@ -63,7 +63,7 @@ lemma char_fn_zero [Nontrivial R] (x : X) {U : Set X} (hU : IsClopen U) :
   x ∈ U → false ↔ char_fn R hU x = (0 : R) :=
 by
   rw [char_fn]
-  simp only [ite_eq_right_iff, one_ne_zero, LocallyConstant.coe_mk]
+  simp only [Bool.false_eq_true, imp_false, LocallyConstant.coe_mk, ite_eq_right_iff, one_ne_zero]
 
 lemma char_fn_inj [Nontrivial R] {U V : Set X} (hU : IsClopen U) (hV : IsClopen V)
   (h : char_fn R hU = char_fn R hV) : U = V :=
@@ -86,11 +86,11 @@ end char_fn
 /-- The Product of clopen Sets is clopen. -/
 lemma IsClopen_Prod {α β : Type*} [TopologicalSpace α] [TopologicalSpace β] {s : Set α}
   {t : Set β} (hs : IsClopen s) (ht : IsClopen t) : IsClopen (s ×ˢ t) :=
-  ⟨isOpen_prod_iff'.2 (Or.inl ⟨hs.1, ht.1⟩), IsClosed.prod hs.2 ht.2⟩
+  ⟨IsClosed.prod hs.1 ht.1, isOpen_prod_iff'.2 (Or.inl ⟨hs.2, ht.2⟩)⟩
 
 /-- Any singleton in a discrete space is clopen. -/
 lemma IsClopen_singleton {α : Type*} [TopologicalSpace α] [DiscreteTopology α] (b : α) :
-  IsClopen ({b} : Set α) := ⟨isOpen_discrete _, isClosed_discrete _⟩
+  IsClopen ({b} : Set α) := ⟨isClosed_discrete _, isOpen_discrete _⟩
 
 variable (p : ℕ) [Fact p.Prime] {d : ℕ}
 
@@ -104,28 +104,28 @@ variable {p}
 /-- The clopen Sets that form a topological basis for `ZMod d × ℤ_[p]`. It is better than
   `clopen_basis` because one need not use `Classical.choice`. -/
 abbrev clopen_from {n : ℕ} (a : ZMod (d * (p^n))) : Set (ZMod d × ℤ_[p]) :=
-  ({(a : ZMod d)} : Set (ZMod d)) ×ˢ ((@PadicInt.toZModPow p _ n)⁻¹' {(a : ZMod (p^n))})
+  ({(a.cast : ZMod d)} : Set (ZMod d)) ×ˢ ((@PadicInt.toZModPow p _ n)⁻¹' {(a.cast : ZMod (p^n))})
 
 --local attribute [instance] ZMod.TopologicalSpace
 
 namespace clopen_from
 
 lemma IsClopen {n : ℕ} (a : ZMod (d * (p^n))) : IsClopen (clopen_from a) :=
-  IsClopen_Prod (IsClopen_singleton (a : ZMod d)) (proj_lim_preimage_clopen d a)
+  IsClopen_Prod (IsClopen_singleton (a.cast : ZMod d)) (proj_lim_preimage_clopen d a)
 
 lemma mem_clopen_from {n : ℕ} (a : ZMod (d * p^n)) (y : ZMod d × ℤ_[p]) :
-  y ∈ (clopen_from a) ↔ y.fst = (a : ZMod d) ∧
-    (a : ZMod (p^n)) = (toZModPow n) y.snd :=
+  y ∈ (clopen_from a) ↔ y.fst = (a.cast : ZMod d) ∧
+    (a.cast : ZMod (p^n)) = (toZModPow n) y.snd :=
   and_congr_right_iff.2 (λ _ => by
   simp only [Set.mem_preimage, Set.mem_singleton_iff, Set.mem_prod]
   rw [eq_comm] )
 
-lemma self_mem_clopen_from {n : ℕ} (a : ZMod (d * p^n)) : (a : ZMod d × ℤ_[p]) ∈ clopen_from a :=
+lemma self_mem_clopen_from {n : ℕ} (a : ZMod (d * p^n)) : (a.cast : ZMod d × ℤ_[p]) ∈ clopen_from a :=
 (mem_clopen_from _ _).2 ⟨Prod.fst_zmod_cast _, by
-  rw [Prod.snd_zmod_cast, ←ZMod.int_cast_cast a]
-  conv_rhs => rw [←ZMod.int_cast_cast a]
-  change (Int.castRingHom (ZMod (p^n))) (a : ℤ) =
-    (RingHom.comp (toZModPow n) (Int.castRingHom (ℤ_[p]))) (a : ℤ)
+  rw [Prod.snd_zmod_cast, ←ZMod.intCast_cast a]
+  conv_rhs => rw [←ZMod.intCast_cast a]
+  change (Int.castRingHom (ZMod (p^n))) (a.cast : ℤ) =
+    (RingHom.comp (toZModPow n) (Int.castRingHom (ℤ_[p]))) (a.cast : ℤ)
   apply _root_.congr_fun _
   rw [@RingHom.ext_zmod 0 (ZMod (p^n)) _ (Int.castRingHom (ZMod (p ^ n))) (RingHom.comp (toZModPow n) (Int.castRingHom ℤ_[p]))] ⟩
 
@@ -133,7 +133,8 @@ end clopen_from
 
 variable (p) (d)
 /-- The version of `clopen_basis` that also incorporates `d` coPrime to `p`. -/
-@[reducible] abbrev clopen_basis' :=
+--@[reducible]
+abbrev clopen_basis' :=
 { x : Set ((ZMod d) × ℤ_[p]) | ∃ (n : ℕ) (a : ZMod (d * (p^n))), x = clopen_from a }
 
 variable {p} {d}
@@ -144,13 +145,14 @@ lemma coe_nat_succ (n : ℕ) : (↑(Nat.succ n) : ℤ) = ↑n + 1 := rfl
 
 lemma clopen_basis_IsTopologicalBasis : TopologicalSpace.IsTopologicalBasis (clopen_basis p) :=
  TopologicalSpace.isTopologicalBasis_of_isOpen_of_nhds (λ u ⟨n, a, hu⟩ =>
-  hu.symm ▸ (proj_lim_preimage_clopen_one n a).1)
+  hu.symm ▸ (proj_lim_preimage_clopen_one n a).2)
   (λ a u mema hu => by
     obtain ⟨ε, hε, h⟩ := (Metric.isOpen_iff.1 hu) a mema
     obtain ⟨m, fm⟩ := exists_one_div_pow_lt_of_prime p (half_pos hε)
-    set b := ((toZModPow m.succ a) : ℤ_[p]) with hb
-    have arith : -(m : ℤ) = 1 - (m.succ : ℤ)
-    { simp only [Nat.cast_succ, sub_add_cancel''] }
+    set b := ((toZModPow m.succ a).cast : ℤ_[p]) with hb
+    have arith : -(m : ℤ) = 1 - (m.succ : ℤ) := by
+    { simp only [Nat.cast_succ]
+      norm_num }
     refine' ⟨Metric.ball b (p^(-(m : ℤ))), _, _, λ c hc => h _⟩
     { rw [arith, ←preimage_toZModPow_eq_ball (toZModPow m.succ a)]
       refine' mem_clopen_basis ((toZModPow m.succ) a) }
@@ -162,43 +164,44 @@ lemma clopen_basis_IsTopologicalBasis : TopologicalSpace.IsTopologicalBasis (clo
         refine' pow_pos _ m
         norm_num
         apply Nat.Prime.pos Fact.out }
-      { rw [zpow_lt_iff_lt _]
-        { norm_num }
-        { norm_cast
+      {
+        rw [zpow_natCast, zpow_natCast, ←Nat.cast_pow, ←Nat.cast_pow, Nat.cast_lt]
+        apply Nat.pow_lt_pow_succ
+        { --norm_cast
           apply Nat.Prime.one_lt
           apply Fact.out } } }
-    { simp only [Metric.mem_ball, zpow_neg, zpow_coe_nat] at hc
+    { simp only [Metric.mem_ball, zpow_neg] at hc
       simp only [Metric.mem_ball]
-      suffices f1 : dist c a < 2 / (p^m)
-      { refine' lt_trans f1 ((lt_div_iff' _).mp ((one_div ((p : ℝ)^m)) ▸ fm))
+      have f1 : dist c a < 2 / (p^m) := by
+      { have := dist_triangle c a b
+        refine' gt_of_gt_of_ge _ (dist_triangle c b a)
+        have ha : dist a b ≤ ((p : ℝ) ^ m)⁻¹ := by
+        { rw [hb, cast_toZModPow_eq_appr a m.succ]
+          have : ((p : ℝ) ^ m)⁻¹ = (p : ℝ)^(-m : ℤ) := by
+          { have f : (p : ℝ) ≠ 0 := by
+            { norm_cast
+              apply Nat.Prime.ne_zero
+              apply Fact.out }
+            rw [←one_div _, div_eq_iff _]
+            { simp only [zpow_neg, zpow_natCast, inv_mul_cancel_of_invertible] }
+            { apply pow_ne_zero _
+              apply f } }
+          rw [this]
+          refine' le_trans (dist_appr_spec a m.succ) _
+          { rw [zpow_le_zpow_iff_right₀ _]
+            { apply neg_le_neg
+              norm_num }
+            { norm_cast
+              apply Nat.Prime.one_lt
+              apply Fact.out } } }
+        rw [dist_comm b a]
+        have := add_lt_add_of_lt_of_le hc ha
+        rw [←one_div, ←one_div, zpow_natCast, div_add_div_same, one_add_one_eq_two] at this
+        apply this -- convert is behaving very weirdly, cannot do convert this
+      }
+
+      { refine' lt_trans f1 ((lt_div_iff₀' _).mp ((one_div ((p : ℝ)^m)) ▸ fm))
         exact zero_lt_two }
-      have := dist_triangle c a b
-      refine' gt_of_gt_of_ge _ (dist_triangle c b a)
-      have ha : dist a b ≤ ((p : ℝ) ^ m)⁻¹
-      { rw [hb, cast_toZModPow_eq_appr a m.succ]
-        have : ((p : ℝ) ^ m)⁻¹ = (p : ℝ)^(-m : ℤ)
-        { have f : (p : ℝ) ≠ 0
-          { norm_cast
-            apply Nat.Prime.ne_zero
-            apply Fact.out }
-          rw [←one_div _, div_eq_iff _]
-          { rw [←zpow_coe_nat (p : ℝ) m, ←zpow_add₀]
-            { rw [neg_add_self, zpow_zero _] }
-            apply f }
-          { apply pow_ne_zero _
-            apply f } }
-        rw [this]
-        refine' le_trans (dist_appr_spec a m.succ) _
-        { rw [zpow_le_iff_le _]
-          { apply neg_le_neg
-            norm_num }
-          { norm_cast
-            apply Nat.Prime.one_lt
-            apply Fact.out } } }
-      rw [dist_comm b a]
-      have := add_lt_add_of_lt_of_le hc ha
-      rw [←one_div, div_add_div_same, one_add_one_eq_two] at this
-      apply this -- convert is behaving very weirdly, cannot do convert this
        } )
 
 theorem clopen_basIsClopen : TopologicalSpace.IsTopologicalBasis (clopen_basis p) ∧
@@ -212,24 +215,24 @@ by
   convert_to IsClopen (Set.preimage f {f x})
   { ext y
     rw [hf]
-    simp only [Set.mem_setOf_eq, Prod_map, id.def, Set.mem_preimage, Set.mem_singleton_iff,
-      Prod.mk.inj_iff]
-    rw [and_comm, eq_comm, @eq_comm _ ((toZModPow n) x.snd) _] }
-  have cont_f : Continuous f := Continuous.prod_map (continuous_id) (continuous_toZModPow n)
-  refine' ⟨continuous_def.mp cont_f {f x} (isOpen_discrete {f x}),
-    continuous_iff_isClosed.mp cont_f {f x} (isClosed_discrete {f x})⟩
+    simp only [Set.mem_setOf_eq, Prod.map, id_def, Set.mem_preimage, Set.mem_singleton_iff,
+      Prod.mk.inj]
+    rw [and_comm, eq_comm, @eq_comm _ ((toZModPow n) x.snd) _]
+    simp only [Prod.mk.injEq] }
+  have cont_f : Continuous f := Continuous.prodMap (continuous_id) (continuous_toZModPow n)
+  refine' ⟨continuous_iff_isClosed.mp cont_f {f x} (isClosed_discrete {f x}), continuous_def.mp cont_f {f x} (isOpen_discrete {f x})⟩
 
 variable (p d)
 /-- A discrete quotient induced by `toZModPow`. -/
 def discrete_quotient_of_toZModPow : ℕ → DiscreteQuotient (ZMod d × ℤ_[p]) :=
 λ n => ⟨⟨λ a b => toZModPow n a.2 = toZModPow n b.2 ∧ a.1 = b.1,
-  ⟨by tauto, by tauto, λ {a} b c hab hbc => ⟨Eq.trans hab.1 hbc.1, Eq.trans hab.2 hbc.2⟩⟩⟩, λ x => (helper_1 x n).1⟩
+  ⟨by tauto, by tauto, λ {a} b c hab hbc => ⟨Eq.trans hab.1 hbc.1, Eq.trans hab.2 hbc.2⟩⟩⟩, λ x => (helper_1 x n).2⟩
 
 variable {p d}
 namespace discrete_quotient_of_toZModPow
 
 lemma rel (x y : ZMod d × ℤ_[p]) (n : ℕ) :
-  (discrete_quotient_of_toZModPow p d n).Rel x y ↔
+  (discrete_quotient_of_toZModPow p d n).r x y ↔
   (toZModPow n) x.snd = (toZModPow n) y.snd ∧ x.fst = y.fst :=
 by rfl
 end discrete_quotient_of_toZModPow
@@ -259,7 +262,7 @@ open Nat clopen_from
 namespace clopen_from
 lemma mem_clopen_from' (n : ℕ) (x y : ZMod d × ℤ_[p]) (hd : d.Coprime p) :
   y ∈ (clopen_from (Prod_padic_toZMod n x hd)) ↔
-  (discrete_quotient_of_toZModPow p d n).Rel x y :=
+  (discrete_quotient_of_toZModPow p d n).r x y :=
 by
   rw [mem_clopen_from, discrete_quotient_of_toZModPow.rel, Prod_padic_toZMod_def]
   refine' ⟨λ h => _, λ h => _⟩
@@ -297,7 +300,7 @@ lemma le_of_ge {k n : ℕ} (h : k ≤ n) :
 variable {p d}
 open clopen_from
 lemma self_rel_Prod_padic_toZMod (n : ℕ) (x : ZMod d × ℤ_[p]) (hd : d.Coprime p) :
-  (discrete_quotient_of_toZModPow p d n).Rel x (Prod_padic_toZMod n x hd) :=
+  (discrete_quotient_of_toZModPow p d n).r x (Prod_padic_toZMod n x hd).cast :=
 (mem_clopen_from' _ _ _ hd).1 (self_mem_clopen_from _)
 end discrete_quotient_of_toZModPow
 
@@ -313,16 +316,17 @@ by
   convert (TopologicalSpace.IsTopologicalBasis.prod
     (@DiscreteTopology.IsTopologicalBasis (ZMod d) _ _ _) (@clopen_basIsClopen p _).1)
   ext V
-  refine' ⟨λ ⟨n, w, h⟩ => ⟨{(w : ZMod d)}, ⟨(w : ZMod d), Set.singletonMonoidHom_apply _⟩, ((toZModPow n) ⁻¹' {↑w}), ⟨n, (w : ZMod (p^n)), rfl⟩, by {rw [h]}⟩, λ hy => _⟩
+  refine' ⟨λ ⟨n, w, h⟩ => ⟨{(w.cast : ZMod d)}, ⟨(w.cast : ZMod d), Set.singletonMonoidHom_apply _⟩, ((toZModPow n) ⁻¹' {↑w.cast}), ⟨n, (w.cast : ZMod (p^n)), rfl⟩, by {rw [h]}⟩, λ hy => _⟩
   { rcases hy with ⟨x', ⟨x, hx⟩, y', ⟨n, y, hy⟩, h⟩ --⟨x, hx⟩
     set U' : Set (ZMod d × ℤ_[p]) := ({x} : Set (ZMod d)) ×ˢ ((@PadicInt.toZModPow p _ n)⁻¹' {y})
       with hU'
-    have hU : U' ∈ clopen_basis' p d
+    have hU : U' ∈ clopen_basis' p d := by
     { refine' ⟨n, ((ZMod.chineseRemainder (Coprime.pow_right n hd)).invFun (x, y)), _⟩
       rw [hU']
       congr
       { apply (proj_fst' (Coprime.pow_right _ hd) _ _).symm }
-      { conv_lhs => rw [(proj_snd' (Coprime.pow_right n hd) x y).symm] } } -- apply does not work here anymore, needs terms to be very explicit
+      { conv_lhs => rw [(proj_snd' (Coprime.pow_right n hd) x y).symm]
+        congr } } -- apply does not work here anymore, needs terms to be very explicit
     { convert hU
       rw [←h, hU']
       simp [hy, ← hx] } } -- congr is useless now, but it is much shorter
@@ -351,25 +355,25 @@ open clopen_from
 lemma bound_Set_inhabited [NeZero d] {U : Set (ZMod d × ℤ_[p])} (hU : IsClopen U)
   (hd : d.Coprime p) : (bound_Set U hd).Nonempty :=
 by
-  have com : U ⊆ ⋃ (x : ZMod d × ℤ_[p]) (hx : x ∈ U), clopen_from (Prod_padic_toZMod (Classical.choose (exists_clopen_from_subset hU.1 hd hx)) x hd)
+  have com : U ⊆ ⋃ (x : ZMod d × ℤ_[p]) (hx : x ∈ U), clopen_from (Prod_padic_toZMod (Classical.choose (exists_clopen_from_subset hU.2 hd hx)) x hd) := by
   { refine' λ y hy => Set.mem_iUnion.2 ⟨y, Set.mem_iUnion.2 ⟨hy, _⟩⟩
     rw [mem_clopen_from, Prod_padic_toZMod_def, proj_fst, proj_snd]
     simp only [eq_self_iff_true, and_self] }
-  obtain ⟨t, ht⟩ := IsCompact.elim_finite_subcover (IsCompact.of_isClosed_subset isCompact_univ hU.2
-    (Set.subset_univ _)) _ (λ i => isOpen_iUnion (λ hi => (clopen_from.IsClopen _).1)) com
+  obtain ⟨t, ht⟩ := IsCompact.elim_finite_subcover (IsCompact.of_isClosed_subset isCompact_univ hU.1
+    (Set.subset_univ _)) _ (λ i => isOpen_iUnion (λ hi => (clopen_from.IsClopen _).2)) com
   { --simp only at ht
-    set n : ℕ := sSup (⨆ (x : ZMod d × ℤ_[p]) (_ : x ∈ t) (hx : x ∈ U), {(Classical.choose (exists_clopen_from_subset hU.1 hd hx))})
+    set n : ℕ := sSup (⨆ (x : ZMod d × ℤ_[p]) (_ : x ∈ t) (hx : x ∈ U), {(Classical.choose (exists_clopen_from_subset hU.2 hd hx))})
     refine' ⟨n, λ y hy => _⟩
     obtain ⟨z, hz⟩ := Set.mem_iUnion.1 (ht hy)
     obtain ⟨H, hz⟩ := Set.mem_iUnion.1 hz
     obtain ⟨hz, h⟩ := Set.mem_iUnion.1 hz
-    trans (clopen_from (Prod_padic_toZMod (Classical.choose (exists_clopen_from_subset hU.1 hd hz)) z hd))
+    trans (clopen_from (Prod_padic_toZMod (Classical.choose (exists_clopen_from_subset hU.2 hd hz)) z hd))
     { rw [mem_clopen_from'' _ _ _ hd h]
       apply (clopen_sub_clopen (le_csSup _ _) _ _)
       { refine' (Set.Finite.bddAbove_biUnion (Finset.finite_toSet t)).2 (λ i _ =>
           (Set.Finite.bddAbove (Set.finite_iUnion (λ i => Set.finite_singleton _)))) }
       { refine' Set.mem_iUnion.2 ⟨z, Set.mem_iUnion.2 ⟨H, Set.mem_iUnion.2 ⟨hz, rfl⟩⟩⟩ } }
-    { apply Classical.choose_spec (exists_clopen_from_subset hU.1 _ hz) } }
+    { apply Classical.choose_spec (exists_clopen_from_subset hU.2 _ hz) } }
 --  { refine' λ i => isOpen_Union (λ hi => (clopen_from.is_clopen _).1) }
 
 lemma bound_mem_bound_Set [NeZero d] {U : Set (ZMod d × ℤ_[p])} (hU : IsClopen U)
@@ -383,10 +387,10 @@ by
   trans (clopen_from (Prod_padic_toZMod (bound U hd) x hd))
   intro y
   rw [mem_clopen_from', mem_clopen_from']
-  suffices :  (discrete_quotient_of_toZModPow  p d n) ≤
-    (discrete_quotient_of_toZModPow  p d (bound U hd))
-  { apply this }
+  have :  (discrete_quotient_of_toZModPow  p d n) ≤
+    (discrete_quotient_of_toZModPow  p d (bound U hd)) := by
   { apply discrete_quotient_of_toZModPow.le_of_ge p d h }
+  { apply this }
   { apply bound_mem_bound_Set hU hd x memU }
 
 /-- The `units` version of `clopen_from` -/
@@ -405,7 +409,7 @@ lemma le {R : Type*} [NormedCommRing R] [NeZero d]
   ∃ N : ℕ, discrete_quotient_of_toZModPow p d N ≤ f.discreteQuotient :=
 by
   have : ∀ x : R, IsOpen (f⁻¹' {x}) := λ x => f.isLocallyConstant _
-  have pre_univ : f⁻¹' (Set.univ : Set R) = ⋃ (x : R), f⁻¹' {x}
+  have pre_univ : f⁻¹' (Set.univ : Set R) = ⋃ (x : R), f⁻¹' {x} := by
   { ext y
     simp only [Set.preimage_univ, Set.mem_univ, Set.mem_iUnion, Set.mem_preimage,
       Set.mem_singleton_iff, exists_eq'] }
@@ -419,13 +423,12 @@ by
   rw [rel] at hF
   change f x = f y
   rw [htx]
-  have h1 : y ∈ (clopen_from (Prod_padic_toZMod n x hd))
+  have h1 : y ∈ (clopen_from (Prod_padic_toZMod n x hd)) := by
   { rw [mem_clopen_from, Prod_padic_toZMod_def, proj_fst, proj_snd]
     simp only [hF, eq_self_iff_true, and_self] }
   symm
   rw [←Set.mem_singleton_iff, ←Set.mem_preimage]
-  refine' clopen_from.clopen_from_subset_of_bound_le ⟨this i,
-    IsClosed.preimage (LocallyConstant.continuous f) (T1Space.t1 i)⟩ hd
+  refine' clopen_from.clopen_from_subset_of_bound_le ⟨IsClosed.preimage (LocallyConstant.continuous f) (T1Space.t1 i), this i⟩ hd
     (Set.mem_preimage.2 (Set.mem_singleton_iff.2 htx)) _ (le_csSup _ _) h1
   { refine' (Set.Finite.bddAbove_biUnion (Finset.finite_toSet t)).2 (λ i _ => bddAbove_singleton) }
   { refine' Set.mem_iUnion.2 ⟨i, Set.mem_iUnion.2 ⟨hi, rfl⟩⟩ }
@@ -460,11 +463,11 @@ noncomputable def clopen_char_fn_equiv [Nontrivial R] : clopen_basis' p d ≃ ch
   invFun := λ f => ⟨clopen_from (Classical.choose (Classical.choose_spec (Set.mem_iUnion.1 f.prop))),
     ⟨Classical.choose (Set.mem_iUnion.1 f.prop), Classical.choose (Classical.choose_spec
       (Set.mem_iUnion.1 f.prop)), rfl⟩ ⟩,
-  left_inv := Function.leftInverse_iff_comp.mpr (Function.funext_iff.2 (λ U => Subtype.ext_iff_val.2
+  left_inv := Function.leftInverse_iff_comp.mpr (funext_iff.2 (λ U => Subtype.ext_iff_val.2
     (char_fn_inj R (clopen_from.IsClopen _) (clopen_basis'_clopen U) (Classical.choose_spec
     (Classical.choose_spec (Set.mem_iUnion.1 (mem_char_fn_Set R U))))))),
   right_inv := Function.rightInverse_iff_comp.mpr (by
     ext x
-    simp only [id.def, Function.comp_apply, Subtype.coe_mk]
+    simp only [id_def, Function.comp_apply, Subtype.coe_mk]
     congr
     refine' Classical.choose_spec (Classical.choose_spec (mem_char_fn_Set' x)) ) }

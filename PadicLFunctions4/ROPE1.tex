@@ -1,0 +1,121 @@
+\documentclass[12pt,reqno,oneside]{amsart}
+\usepackage{graphicx} % Required for inserting images
+% Enable UTF-8 encodings for input, to enter é instead of \'{e}.
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+ \renewcommand{\familydefault}{\sfdefault}
+\usepackage{graphics}
+%\usepackage[pagebackref]{hyperref}
+\usepackage[colorlinks=true, pdfstartview=FitV,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage{cleveref}
+%\renewcommand*\backref[1]{\ifx#1\relax \else (Cited on page #1) \fi}
+
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{circuitikz}
+
+\usepackage{fullpage}
+\usepackage{numprint}
+\npthousandsep{,}
+
+\usepackage{enumitem}
+% Presented to you by Technicolor, and the number 3
+\usepackage{graphicx} 
+\usepackage{subcaption} 
+\usepackage[dvipsnames]{xcolor}
+
+% Slightly prettier tables
+\usepackage{booktabs}
+
+% For the tik pictures
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, calc, fit}  % Load the required libraries
+\usepackage{graphics}
+\usepackage{pgf}
+
+
+
+% Don't worry about starred environments. YOU are the star!
+\usepackage{mathtools}
+\mathtoolsset{showonlyrefs}
+\usepackage[style=alphabetic, backend=biber, sorting=nyt, doi=false, isbn=false,url=false, hyperref,backref,backrefstyle=none, minbibnames=3, maxnames=30, maxalphanames=5]{biblatex}
+
+\title{ROPE Decra 25}
+\author{Ashvni N}
+%\date{February 2025}
+
+\begin{document}
+\noindent
+%\maketitle
+
+\section{Project Quality and Innovation}
+Computer aided proof verification is a revolution that is speedily changing the face of research mathematics. Formal verification is the use of logical and computational methods to establish claims that are expressed in precise mathematical terms. Lean is an interactive theorem prover which is being used widely by mathematicians and computer scientists for the formal verification of mathematics. For instance, Fields Medalists Terence Tao and Peter Scholze used Lean to verify technical lemmas in their papers which they did not feel confident about(cite). Lean is also being used by several companies in USA to verify and create platforms with enhanced cybersecurity. It is also a key component of AlphaProof, DeepMind’s state-of-the-art AI for mathematics tool(cite). \\
+
+The projects described above required sustained years-long efforts involving large groups of researchers. For the next generation of inexperienced users, \textit{it is imperative to build tools to make Lean more accessible to the common mathematician and scientist}. With the advent of large language models(LLMs), one could think of building a translator from English to Lean, which would greatly speed up the process. This is one of the goals of the project. \\
+
+A disadvantage of \texttt{mathlib}(Lean’s primary mathematics library) is the lack of counterexamples. Counterexamples are vital because they inform us on exactly where a proof breaks, and why. Mathematicians often use software such as Magma, Matlab etc to construct counterexamples. Thus, \textit{having a bridge from such computational technologies to Lean would be helpful}. An approach could be to use an intermediate language into which Lean code is translated, and from which results from the software can be extracted. LLMs are excellent in translation and are expected to work very well for this purpose. \\
+
+This serves two goals – building counterexamples in Lean, as well as formally verifying the computational software. This is in line with the current goal of the expanding Magma group (due to a Simons Research Grant) and the newly erected Quantum computation institute, which relies on high accuracy results from Magma. Both of these are based at University of Sydney, thus \textit{making it an ideal location for my project.} \\
+
+%Unfortunately, there is only one other proficient Lean user in Australia, putting the continent at a risk of falling behind. While continuing my work on formal verification of aspects of number theory and knot theory, I would also like to introduce Lean to the Australian math community through workshops and conferences, bringing together worldwide experts. \\
+
+%Finally, there are grave concerns regarding the widespread use and access of AI – ranging from tougher questions being required for exams which ChatGPT cannot crack, to the number of jobs that could be usurped by AI. At the centre of these questions lies the topic of AI ethics and safety. Many governments are now creating bodies to study these issues. However, it is not possible to find answers without a good understanding of the technical aspects of deep learning models. I intend to organize workshops, enabling conversations on this serious matter between experts, specifically tackling the question of formal verification of AI.
+
+Finally, Lean assists in finding the most general version of a proof. A goal is to use this to explore the \textit{connections between number theory and knot theory}. This is a complex task due to most proofs in knot theory being ``diagrammatic'' in nature. I hope to construct tools that can materialize the concept of proof by diagram in Lean. \\
+
+To summarize, this project has 3 parts:
+
+\parbox{0.45\textwidth}{\raggedright
+    \begin{enumerate}[label=(\Alph*)]
+\item \textcolor[rgb]{0.5,0.1647,0.835}{Using LLMs to build an English-to-Lean encoder.}
+\item \textcolor[rgb]{0.2667,0.9255,0.1333}{Developing tools using LLMs in Lean which extract examples from other computational software.}
+\item \textcolor[rgb]{0.8353,0.3647,0.1647}{Formalizing advanced number theory, knot theory and their intersection.}
+\end{enumerate}
+}
+\hfill
+\parbox{0.45\textwidth}{\centering
+    \includegraphics[width=\linewidth]{ROPE 1st page image.png}
+}
+
+%I will now focus on each of these parts separately. 
+%\begin{figure}[hb]
+%    \centering
+%        \includegraphics{ROPE 1st page image.png}
+%    \label{fig: first_page_img}
+%\end{figure}
+
+
+%\begin{figure}[!hb]
+%\centering
+%\begin{circuitikz}
+%\tikzstyle{every node}=[font=\normalsize]
+
+%\draw  (3.75,13.5) rectangle  node {\normalsize Computer Algebra Systems} (8.5,12.25);
+%\draw  (5,11.75) rectangle  node {\normalsize LLMs} (7,10.75);
+%\draw  (3.5,10.25) rectangle  node {\normalsize Formally verified math in Lean} (9.25,9.25);
+%\draw  (2,11.25) circle (1.25cm) node {\normalsize Written Math} ;
+%\draw [ color={rgb,255:red,11; green,242; blue,7}, ->, >=Stealth] (6.25,10.25) -- (6.25,10.75);
+%\draw [ color={rgb,255:red,70; green,199; blue,61}, ->, >=Stealth] (6.75,12.25) -- (6.75,11.75);
+%\draw [ color={rgb,255:red,68; green,236; blue,34}, ->, >=Stealth] (6.75,10.75) -- (7.25,10.25);
+%\draw [ color={rgb,255:red,108; green,225; blue,45}, ->, >=Stealth] (6.25,11.75) -- (6.25,12.25);
+%\draw [ color={rgb,255:red,128; green,42; blue,213}, ->, >=Stealth] (5.25,10.75) -- (4.75,10.25);
+%\draw [ color={rgb,255:red,128; green,42; blue,213}, ->, >=Stealth] (3.25,11.25) -- (5,11.25);
+%\draw [ color={rgb,255:red,213; green,93; blue,42}, ->, >=Stealth] (2.75,10.25) -- (3.5,9.75);
+%\draw [ color={rgb,255:red,5; green,5; blue,5}, <->, >=Stealth, dashed] (2.75,12.25) -- (3.75,12.875);
+%\end{circuitikz}
+
+%\label{fig:my_label}
+%\end{figure}
+
+\subsection{Introduction to Lean}
+Lean is an interactive theorem prover which facilitates formal verification of mathematics. A fundamental difference between writing mathematics in Lean and on paper is its precision, caused by differences in set theory and dependent type theory. Dependent type theory is a logical system in which every element is a term of a unique type, and for two elements to be equal, they must have the same type. For example, 1, a natural number, may also be regarded as a rational number, and is indistinguishable on paper. However, 1 of type Nat and 1 of type Rat are different elements in Lean. One can then identify 1:N with 1:Q by passing through the canonical inclusion i:N->Q, and saying that i(1) = (1:Q). (Insert Lean code)
+
+What makes Lean efficient is its typeclass inference system, which can infer certain properties “remembered” by the system, which eases the formalization process. (Insert example)
+
+mathlib, Lean’s mathematical library, contains x theorems, which have been verified by Lean’s kernel to be correct, starting from Peano’s axioms. A defining feature of mathlib is that it contains theorems proved in the utmost generality. This ensures reduction of identical theorem statements with the same proof which work for a higher case. Moreover, mathlib moderators stress on keeping theorem proofs less than 50 lines long, which really explains the essence of the proof, and makes its structure and dependence on other supporting lemmas very clear in a graphical fashion. Also, all definitions are required to have “docstrings” which is an explanation of the definition and its usage. These features of mathlib ensure that it is a good and sizeable dataset for training language models. 
+
+\section{Benefit}
+\section{Communication of Results}
+\section{References}
+\section{Acknowledgements}
+blah blah
+\end{document}

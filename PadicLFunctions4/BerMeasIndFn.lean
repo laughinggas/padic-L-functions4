@@ -58,14 +58,17 @@ lemma ind_fn_eq_fun (f : (ZMod d)ˣ × ℤ_[p]ˣ → A) :
   f = (ind_fn f) ∘ (Prod.map (Units.coeHom _) (Units.coeHom _)) := by
   ext x
   rw [ind_fn_def, comp_apply, Injective.extend_apply _]-- gives error if put together?
-  apply Injective.Prod_map Units.ext Units.ext
+  apply Injective.prodMap Units.ext Units.ext
 
 lemma map_ind_fn_eq_fn (f : (ZMod d)ˣ × ℤ_[p]ˣ → A) {z : ZMod d × ℤ_[p]}
   (h' : (IsUnit z.fst ∧ IsUnit z.snd)) : ind_fn f z = f (IsUnit.unit h'.1, IsUnit.unit h'.2) := by
   conv_rhs => { rw [ind_fn_eq_fun f] }
+  simp only [comp_apply, Prod.map_apply, Units.coeHom_apply, IsUnit.unit_spec, Prod.mk.eta]
 
 lemma map_ind_fn_eq_fn' (f : (ZMod d)ˣ × ℤ_[p]ˣ → A) {z : (ZMod d)ˣ × ℤ_[p]ˣ} :
-  ind_fn f (Prod.map (Units.coeHom _) (Units.coeHom _) z) = f z := by { conv_rhs => { rw [ind_fn_eq_fun f] } }
+  ind_fn f (Prod.map (Units.coeHom _) (Units.coeHom _) z) = f z := by
+  { conv_rhs => { rw [ind_fn_eq_fun f] }
+    simp only [comp_apply] }
 
 lemma map_ind_fn_eq_zero (f : (ZMod d)ˣ × ℤ_[p]ˣ → A) {z : ZMod d × ℤ_[p]}
   (h' : ¬(IsUnit z.fst ∧ IsUnit z.snd)) : ind_fn f z = 0 := by
@@ -78,14 +81,14 @@ lemma map_ind_fn_eq_zero (f : (ZMod d)ˣ × ℤ_[p]ˣ → A) {z : ZMod d × ℤ_
 end ind_fn
 
 namespace ZMod
-lemma embedding_coe {n : ℕ} : Embedding (Units.coeHom _ : (ZMod n)ˣ → ZMod n) :=
-{ induced := (top_eq_iff_cont_inv.2 (by
+lemma embedding_coe {n : ℕ} : Topology.IsEmbedding (Units.coeHom _ : (ZMod n)ˣ → ZMod n) :=
+{ eq_induced := (top_eq_iff_cont_inv.2 (by
     convert continuous_of_discreteTopology
     apply DiscreteTopology_induced
     exact Units.ext)).symm
-  inj := Units.ext }
+  injective := Units.ext }
 
-lemma open_embedding_coe {n : ℕ} : OpenEmbedding (Units.coeHom _ : (ZMod n)ˣ → ZMod n) :=
+lemma open_embedding_coe {n : ℕ} : Topology.IsOpenEmbedding (Units.coeHom _ : (ZMod n)ˣ → ZMod n) :=
 ⟨embedding_coe, (isOpen_coe' _).isOpen_range⟩
 end ZMod
 
@@ -97,14 +100,15 @@ lemma helper_is_loc_const {s : Set A} (hs : ¬ (0 : A) ∈ s)
   { congr
     rw [toFun_eq_coe, ind_fn_eq_fun f] }
   rw [Set.preimage_comp] at f1
-  refine' (OpenEmbedding.open_iff_preimage_open (OpenEmbedding.prod ZMod.open_embedding_coe
+  refine' (Topology.IsOpenEmbedding.isOpen_iff_preimage_isOpen (Topology.IsOpenEmbedding.prodMap ZMod.open_embedding_coe
       PadicInt.open_embedding_coe) (λ z hz => _)).2 f1
   by_cases h' : IsUnit z.1 ∧ IsUnit z.2
   { refine' ⟨(IsUnit.unit h'.1, IsUnit.unit h'.2), Prod.ext_iff.2 _⟩
-    simp only [Prod.map_mk]
-    refine' ⟨IsUnit.unit_spec _, IsUnit.unit_spec _⟩
-    · simp only [Units.coeHom_apply, IsUnit.unit_spec, h']
-    · simp only [Units.coeHom_apply, IsUnit.unit_spec, h'] }
+    simp only [Prod.map_apply, Units.coeHom_apply, IsUnit.unit_spec, Prod.mk.eta, and_self] }
+    -- simp only [Prod.map_mk]
+    -- refine' ⟨IsUnit.unit_spec _, IsUnit.unit_spec _⟩
+    -- · simp only [Units.coeHom_apply, IsUnit.unit_spec, h']
+    -- · simp only [Units.coeHom_apply, IsUnit.unit_spec, h'] }
   { exfalso
     rw [Set.mem_preimage, map_ind_fn_eq_zero f h'] at hz
     refine hs hz }
@@ -123,7 +127,7 @@ lemma preimage_zero_of_loc_const (f : LocallyConstant ((ZMod d)ˣ × ℤ_[p]ˣ) 
       contrapose h''
       rw [←Set.mem_compl_iff, compl_compl, Set.mem_range] at h''
       cases' h'' with z hz
-      rw [Prod.ext_iff, Prod_map] at hz
+      rw [Prod.ext_iff] at hz -- , Prod_map
       rw [not_not, ←hz.1, ←hz.2]
       refine' ⟨Units.isUnit z.fst, Units.isUnit z.snd⟩ } }
   { cases' h' with h' h'
@@ -132,7 +136,7 @@ lemma preimage_zero_of_loc_const (f : LocallyConstant ((ZMod d)ˣ × ℤ_[p]ˣ) 
       refine hz.1 }
     { apply map_ind_fn_eq_zero
       refine' (λ h => Set.not_mem_compl_iff.2 h' _)
-      simp only [compl_compl, Set.range_prod_map, Set.mem_prod, Set.mem_range]
+      simp only [compl_compl, Set.range_prodMap, Set.mem_prod, Set.mem_range]
       refine' ⟨⟨IsUnit.unit h.1, IsUnit.unit_spec _⟩,
         ⟨IsUnit.unit h.2, IsUnit.unit_spec _⟩⟩
       · simp only [Units.coeHom_apply, IsUnit.unit_spec, h]
@@ -147,9 +151,9 @@ lemma is_loc_const_ind_fn (f : LocallyConstant (Units (ZMod d) × Units ℤ_[p])
     { apply helper_is_loc_const _ f
       simp only [Set.mem_diff, Set.mem_singleton, not_true, and_false, not_false_iff] }
     { rw [preimage_zero_of_loc_const f]
-      apply IsOpen.union ((IsOpenMap.prod (isOpen_coe' _) isOpen_coe) _
+      apply IsOpen.union ((IsOpenMap.prodMap (isOpen_coe' _) isOpen_coe) _
         (LocallyConstant.isLocallyConstant f _))
-      { rw [isOpen_compl_iff, Set.range_prod_map]
+      { rw [isOpen_compl_iff, Set.range_prodMap]
         refine IsClosed.prod (isClosed_discrete (Set.range (Units.coeHom _))) IsClosed_coe } } }
   { apply helper_is_loc_const h f }
 

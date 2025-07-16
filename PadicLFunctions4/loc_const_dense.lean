@@ -4,8 +4,9 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Ashvni Narayanan
 -/
 import Mathlib.NumberTheory.Padics.PadicIntegers
-import Mathlib.Topology.ContinuousFunction.Compact
-import Mathlib.Topology.ContinuousFunction.LocallyConstant
+import Mathlib.Topology.Separation.Profinite
+--import Mathlib.Topology.ContinuousFunction.Compact
+import Mathlib.Topology.LocallyConstant.Basic
 
 /-!
 # p-adic measure theory
@@ -98,7 +99,7 @@ lemma clopen_Union_disjoint {H : Type*} [TopologicalSpace H]
         assumption } }
     { rw [Finset.mem_insert] at hx
       rw [Finset.mem_insert] at hy
-      have : ∀ y ∈ t, b ∩ y = ∅
+      have : ∀ y ∈ t, b ∩ y = ∅ := by
       { rintro y hy
         rw [hb, union]
         apply Set.diff_inter_mem_sUnion
@@ -118,9 +119,7 @@ lemma clopen_Union_disjoint {H : Type*} [TopologicalSpace H]
 end IsClopen
 
 namespace LocallyConstant.density
-variable [T2Space X] [TotallyDisconnectedSpace X] {B : Type*} [TopologicalSpace B]
-  {f' : C(X, B)} {s: Set (Set C(X, B))} (hf' : ∀ x ∈ s, f' ∈ x) [Fintype s]
-  (h2 : ∀ (x : Set C(X, B)), x ∈ s → (∃ (s : Set X), IsCompact s ∧ ∃ (a : Set B), IsOpen a ∧ x = {f : C(X, B) | s ⊆ ⇑f ⁻¹' a}))
+variable [T2Space X] [TotallyDisconnectedSpace X] {B : Type*} [TopologicalSpace B] {f' : C(X, B)} {s: Set (Set C(X, B))} [Fintype s] (h2 : ∀ (x : Set C(X, B)), x ∈ s → (∃ (s : Set X), IsCompact s ∧ ∃ (a : Set B), IsOpen a ∧ x = {f : C(X, B) | s ⊆ ⇑f ⁻¹' a}))
 
 /-- The compact Sets coming from hypothesis `h2`. -/
 abbrev com (x : Set C(X, B)) (hx : x ∈ s) := (Classical.choose (h2 x hx) : Set X)
@@ -136,7 +135,7 @@ variable (f')
 lemma ope_preimage {x : Set C(X, B)} (hx : x ∈ s) : IsOpen (f'⁻¹' (ope h2 x hx)) := continuous_def.1 f'.2 _ (ope_spec h2 hx)
 
 variable {f'}
-lemma com_sub_ope {x : Set C(X, B)} (hx : x ∈ s) : com h2 x hx ⊆ f'⁻¹' (ope h2 x hx) :=
+lemma com_sub_ope (hf' : ∀ x ∈ s, f' ∈ x) {x : Set C(X, B)} (hx : x ∈ s) : com h2 x hx ⊆ f'⁻¹' (ope h2 x hx) :=
 (Set.ext_iff.1 (((h2 x hx).choose_spec).2.choose_spec.2) f').1 (hf' x hx)
 
 /-- Given an open Set in X, this is its cover by basic clopen Sets. -/
@@ -161,11 +160,11 @@ lemma open_eq_sUnion_Set_clopen' {U : Set X} (hU : IsOpen U) : U = ⋃₀ Set_cl
 /-- `X` is covered by a union of preimage of finitely many elements of `S` under `f` -/
 lemma exists_Finset_univ_sub' {U : Set X} (hU : IsOpen U) : ∃ (t : Finset (Set B)), Set.univ ⊆ ⋃ (U : Set B) (H : U ∈ t)
   (H : IsOpen U), f' ⁻¹' U := by
-  have g : (⋃ (U : Set B) (_ : IsOpen U), U) = (Set.univ : Set B)
+  have g : (⋃ (U : Set B) (_ : IsOpen U), U) = (Set.univ : Set B) := by
   { rw [Set.iUnion_eq_univ_iff]
     refine' λ x => ⟨Set.univ, _⟩
     simp only [isOpen_univ, Set.iUnion_true, Set.mem_univ] }
-  have g' : f'⁻¹' (⋃ (U : Set B) (_ : IsOpen U), U) = Set.univ
+  have g' : f'⁻¹' (⋃ (U : Set B) (_ : IsOpen U), U) = Set.univ := by
   { rw [g]
     exact Set.preimage_univ }
   simp_rw [Set.preimage_iUnion, Set.Subset.antisymm_iff] at g'
@@ -175,7 +174,7 @@ lemma open_eq_sUnion_Finset_clopen' {U s : Set X} (hU : IsOpen U) (hs : IsCompac
   ∃ (t : Finset (Set X)) (H : (t : Set (Set X)) ⊆ Set_clopen' hU), s ⊆ ⋃₀ t ∧ ⋃₀ (t : Set (Set X)) ⊆ U :=
 by
   rw [open_eq_sUnion_Set_clopen' hU, Set.sUnion_eq_biUnion] at sub_U
-  obtain ⟨t, ht1, ht2, ht3⟩ := IsCompact.elim_finite_subcover_image hs (λ i hi => (Set_clopen_sub_clopen_Set' hU hi).1) sub_U
+  obtain ⟨t, ht1, ht2, ht3⟩ := IsCompact.elim_finite_subcover_image hs (λ i hi => (Set_clopen_sub_clopen_Set' hU hi).2) sub_U
   rw [← Set.sUnion_eq_biUnion] at ht3
   refine' ⟨ht2.toFinset, _, _, _⟩
   · rwa [Set.Finite.coe_toFinset]
@@ -196,30 +195,30 @@ lemma open_eq_sUnion_Finset_clopen'_disjoint {U s : Set X} (hU : IsOpen U) (hs :
   { rwa [← ht2'] }
 
 /-- Given an `x ∈ s`, this gives a finite disjoint clopen cover of `x`. -/
-noncomputable abbrev com_ope_Finset' :=
-  λ (x : s) => (open_eq_sUnion_Finset_clopen'_disjoint (continuous_def.1 f'.2 _ (ope_spec h2 x.2)) (com_spec h2 x.2) (com_sub_ope hf' h2 x.2)).choose
+noncomputable abbrev com_ope_Finset' (hf' : ∀ x ∈ s, f' ∈ x) :=
+  λ (x : s) => (open_eq_sUnion_Finset_clopen'_disjoint (continuous_def.1 f'.2 _ (ope_spec h2 x.2)) (com_spec h2 x.2) (com_sub_ope h2 hf' x.2)).choose
 
-lemma com_ope_Finset'_spec (x : s) : (∀ (y : Set X), y ∈ com_ope_Finset' hf' h2 x → IsClopen y) ∧
-  (∀ (y : Set X), y ∈ com_ope_Finset' hf' h2 x → (∃ (z : Set X) (H : z ∈ Set_clopen' (ope_preimage f' h2 x.2)), y ⊆ z)) ∧
-  (com h2 x x.2) ⊆ ⋃₀ ↑(com_ope_Finset' hf' h2 x) ∧ ⋃₀ ↑(com_ope_Finset' hf' h2 x) ⊆ f'⁻¹' (ope h2 x x.2) ∧
-  ∀ (z y : Set X), z ∈ (com_ope_Finset' hf' h2 x) → y ∈ (com_ope_Finset' hf' h2 x) → z ≠ y → z ∩ y = ∅ := by
-  obtain ⟨ht1, ht2, ht3⟩ := (open_eq_sUnion_Finset_clopen'_disjoint (continuous_def.1 f'.2 _ (ope_spec h2 x.2)) (com_spec h2 x.2) (com_sub_ope hf' h2 x.2)).choose_spec
+lemma com_ope_Finset'_spec (hf' : ∀ x ∈ s, f' ∈ x) (x : s) : (∀ (y : Set X), y ∈ com_ope_Finset' h2 hf' x → IsClopen y) ∧
+  (∀ (y : Set X), y ∈ com_ope_Finset' h2 hf' x → (∃ (z : Set X) (H : z ∈ Set_clopen' (ope_preimage f' h2 x.2)), y ⊆ z)) ∧
+  (com h2 x x.2) ⊆ ⋃₀ ↑(com_ope_Finset' h2 hf' x) ∧ ⋃₀ ↑(com_ope_Finset' h2 hf' x) ⊆ f'⁻¹' (ope h2 x x.2) ∧
+  ∀ (z y : Set X), z ∈ (com_ope_Finset' h2 hf' x) → y ∈ (com_ope_Finset' h2 hf' x) → z ≠ y → z ∩ y = ∅ := by
+  obtain ⟨ht1, ht2, ht3⟩ := (open_eq_sUnion_Finset_clopen'_disjoint (continuous_def.1 f'.2 _ (ope_spec h2 x.2)) (com_spec h2 x.2) (com_sub_ope h2 hf' x.2)).choose_spec
   refine' ⟨ht2, ht1, ht3⟩
 
 open scoped Classical
 /-- The finite Set which is the union of `com_ope_Finset'` for all `x ∈ s`. -/
 noncomputable def middle_cover {f' : C(X, B)} {s: Set (Set C(X, B))} (hf' : ∀ x ∈ s, f' ∈ x) [Fintype s]
   (h2 : ∀ (x : Set C(X, B)), x ∈ s → (∃ (s : Set X), IsCompact s ∧ ∃ (a : Set B), IsOpen a ∧ x = {f : C(X, B) | s ⊆ ⇑f ⁻¹' a})) : Finset (Set X) :=
-Finset.sup Finset.univ (com_ope_Finset' hf' h2)
+Finset.sup Finset.univ (com_ope_Finset' h2 hf')
 
 lemma middle_cover_spec {t : Set C(X, B)} (ht : t ∈ s) : com h2 t ht ⊆ ⋃₀ middle_cover hf' h2 :=
-Set.Subset.trans (com_ope_Finset'_spec hf' h2 ⟨t, ht⟩).2.2.1 (Set.sUnion_subset_sUnion
+Set.Subset.trans (com_ope_Finset'_spec h2 hf' ⟨t, ht⟩).2.2.1 (Set.sUnion_subset_sUnion
   (Finset.subset_iff.mpr (λ x hx => Finset.mem_sup.2 ⟨⟨t, ht⟩, Finset.mem_univ _, hx⟩)))
 
 lemma middle_cover_clopen (x : Set X) (hx : x ∈ middle_cover hf' h2) : IsClopen x := by
   rw [middle_cover, Finset.mem_sup] at hx
   rcases hx with ⟨v, _, hx⟩
-  apply (com_ope_Finset'_spec hf' h2 v).1 x hx
+  apply (com_ope_Finset'_spec h2 hf' v).1 x hx
 
 -- dont know how to golf this
 /-- Given any Set of Sets, one can obtain a "finer" Set of Sets which is disjoint, with each Set being contained in the
@@ -234,10 +233,10 @@ lemma exists_Finset_disjoint_clopen {t : Finset (Set X)} (ht : ∀ x (hx : x ∈
   { rintro a S h't hS aS ⟨t', disj, ex, union⟩
     set g1 := λ (s : t') => s.1 ∩ a with hg1
     set g2 := λ (s : t') => s.1\a with hg2
-    have fin_g1 : Set.Finite (Set.range g1)
-    · exact Set.finite_range g1
-    have fin_g2 : Set.Finite (Set.range g2)
-    · exact Set.finite_range g2
+    have fin_g1 : Set.Finite (Set.range g1) := by
+      exact Set.finite_range g1
+    have fin_g2 : Set.Finite (Set.range g2) := by
+      exact Set.finite_range g2
     set b := a \ ⋃₀ S with hb
     refine' ⟨insert b ((Set.Finite.toFinset fin_g1) ∪ (Set.Finite.toFinset fin_g2)), _, λ x hx => _, _, λ x hx => _⟩
     { simp only [Finset.coe_insert, Finset.coe_union, Set.Finite.coe_toFinset]
@@ -245,53 +244,55 @@ lemma exists_Finset_disjoint_clopen {t : Finset (Set X)} (ht : ∀ x (hx : x ∈
       { cases' hy with hy hy
         { rcases hy with ⟨y', hy'⟩
           --rw [hg1] at hy'
-          simp only at hy'
+          --simp only at hy'
           rw [← hy']
           cases' hz with hz hz
           { rcases hz with ⟨z', hz'⟩
             --rw [hg1] at hz'
-            simp only at hz'
+            --simp only at hz'
             rw [← hz']
             apply Disjoint.inter_left _ (Disjoint.inter_right _ (disj y'.2 z'.2 (λ h => y_ne_z _)))
             rw [← hy', ← hz']
             intro h
+            rw [← Subtype.ext_iff_val] at h
             rw [h] }
           { rcases hz with ⟨z', hz'⟩
             --rw [hg2] at hz'
-            simp only at hz'
+            --simp only at hz'
             rw [← hz']
             intro x hx1 hx2
             intro l hl
             specialize hx1 hl
             specialize hx2 hl
             --simp only [id_eq, Set.le_eq_subset, Set.subset_inter_iff] at hx
-            simp only [id.def, Set.inf_eq_inter, Set.mem_inter_iff, Set.mem_diff] at hx1
-            simp only [id.def, Set.inf_eq_inter, Set.mem_inter_iff, Set.mem_diff] at hx2
+            simp only [id_def, Set.inf_eq_inter, Set.mem_inter_iff, Set.mem_diff] at hx1
+            simp only [id_def, Set.inf_eq_inter, Set.mem_inter_iff, Set.mem_diff] at hx2
             apply hx2.2 hx1.2 } }
         { rcases hy with ⟨y', hy'⟩
           --rw [hg2] at hy'
-          simp only at hy'
+          --simp only at hy'
           rw [← hy']
           cases' hz with hz hz
           { rcases hz with ⟨z', hz'⟩
             --rw [hg1] at hz'
-            simp only at hz'
+            --simp only at hz'
             rw [← hz']
             intro x hx1 hx2
             intro l hl
             specialize hx1 hl
             specialize hx2 hl
-            simp only [id.def, Set.inf_eq_inter, Set.mem_inter_iff, Set.mem_diff] at hx1
-            simp only [id.def, Set.inf_eq_inter, Set.mem_inter_iff, Set.mem_diff] at hx2
+            simp only [id_def, Set.inf_eq_inter, Set.mem_inter_iff, Set.mem_diff] at hx1
+            simp only [id_def, Set.inf_eq_inter, Set.mem_inter_iff, Set.mem_diff] at hx2
             apply hx1.2 hx2.2 }
           { rcases hz with ⟨z', hz'⟩
-            simp only at hz'
+            --simp only at hz'
             rw [← hz']
             apply Disjoint.inter_left _ (Disjoint.inter_right _ (disj y'.2 z'.2 (λ h => y_ne_z _)))
             rw [← hy', ← hz']
             intro h
+            rw [← Subtype.ext_iff_val] at h
             rw [h] } } }
-      simp only [id.def]
+      simp only [id_def]
       intro y hy1 hy2
       intro z hz
       specialize hy1 hz

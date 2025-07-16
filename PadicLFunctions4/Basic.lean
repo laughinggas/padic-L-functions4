@@ -5,7 +5,7 @@ open DirichletCharacter
 /-- If m = n are positive natural numbers, then ZMod m ≃ ZMod n. -/
 def ZMod.mul_equiv {a b : ℕ} (h : a = b) : ZMod a ≃* ZMod b := by { rw [h] }
 
-variable {R : Type} [CommMonoidWithZero R] {n : ℕ} (χ : DirichletCharacter R n)
+variable {R : Type*} [CommMonoidWithZero R] {n : ℕ} (χ : DirichletCharacter R n)
 /-- If m = n are positive natural numbers, then their Dirichlet character spaces are the same. -/
 def equiv {a b : ℕ} (h : a = b) : DirichletCharacter R a ≃* DirichletCharacter R b := by { rw [h] }
 
@@ -56,18 +56,18 @@ def is_even : Prop := ψ (-1) = 1
 
 lemma is_odd_or_is_even [NoZeroDivisors S] : ψ.is_odd ∨ ψ.is_even :=
 by
-  suffices : (ψ (-1))^2 = 1
-  { conv_rhs at this => rw [←one_pow 2]
-    rw [←sub_eq_zero] at this
-    rw [sq_sub_sq, mul_eq_zero, sub_eq_zero, add_eq_zero_iff_eq_neg] at this
-    cases' this with this this
-    { left
-      rw [is_odd]
-      simp only [this] }
-    { right
-      rw [is_even]
-      simp only [this] } }
-  { rw [←map_pow _, neg_one_sq, map_one] }
+  have : (ψ (-1))^2 = 1 := by
+    { rw [←map_pow _, neg_one_sq, map_one] }
+  conv_rhs at this => rw [←one_pow 2]
+  rw [←sub_eq_zero] at this
+  rw [sq_sub_sq, mul_eq_zero, sub_eq_zero, add_eq_zero_iff_eq_neg] at this
+  cases' this with this this
+  { left
+    rw [is_odd]
+    simp only [this] }
+  { right
+    rw [is_even]
+    simp only [this] }
 -- can conditions on S be relaxed? comm needed for sq_sub_sq, and no_divisors needed for mul_eq_zero
 
 lemma toUnitHom_odd_eval_neg_one (hψ : ψ.is_odd) : ψ.toUnitHom (-1) = -1 :=

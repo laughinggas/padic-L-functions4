@@ -34,7 +34,7 @@ open scoped BigOperators
   `B_{m, ψ} = f^{m - 1} * ∑_{a = 0}^{f - 1} ψ(a + 1) * B_m((a+1) / f)`,
   where `f` is the conductor of the Dirichlet character `ψ`. -/
 noncomputable def general_bernoulli_number (m : ℕ) : S :=
-  (algebraMap ℚ S ((ψ.conductor)^(m - 1 : ℤ))) * (∑ a in Finset.range ψ.conductor,
+  (algebraMap ℚ S ((ψ.conductor)^(m - 1 : ℤ))) * (∑ a ∈ Finset.range ψ.conductor,
   (primitiveCharacter ψ) a.succ * algebraMap ℚ S
   ((Polynomial.bernoulli m).eval (a.succ / ψ.conductor : ℚ)))
 -- def is ind of F
@@ -42,7 +42,7 @@ noncomputable def general_bernoulli_number (m : ℕ) : S :=
 namespace general_bernoulli_number
 
 lemma general_bernoulli_number_def (m : ℕ) : general_bernoulli_number ψ m =
-  (algebraMap ℚ S ((ψ.conductor)^(m - 1 : ℤ))) * (∑ a in Finset.range ψ.conductor,
+  (algebraMap ℚ S ((ψ.conductor)^(m - 1 : ℤ))) * (∑ a ∈ Finset.range ψ.conductor,
   (primitiveCharacter ψ) a.succ *
   algebraMap ℚ S ((Polynomial.bernoulli m).eval (a.succ / ψ.conductor : ℚ))) := rfl
 
@@ -65,8 +65,8 @@ by { rw [general_bernoulli_number_one_eval, bernoulli'_one] }
 
 /-- `∑_{a = 0}^{m*n - 1} f a = ∑_{i = 0}^{n - 1} (∑_{a = m*i}^{m*(i + 1)} fa)`. -/
 lemma Finset.sum_range_mul_eq_sum_Ico {m n : ℕ} (f : ℕ → S) :
-  ∑ a in Finset.range (m * n), f a =
-  ∑ i in Finset.range n, (∑ a in Finset.Ico (m * i) (m * i.succ), f a) := by
+  ∑ a ∈ Finset.range (m * n), f a =
+  ∑ i ∈ Finset.range n, (∑ a ∈ Finset.Ico (m * i) (m * i.succ), f a) := by
   induction n with --d hd
   | zero => simp only [Nat.zero_eq, mul_zero, Finset.range_zero, Finset.sum_empty, ge_iff_le, gt_iff_lt]
   | succ d hd =>
@@ -78,7 +78,7 @@ lemma Finset.sum_range_mul_eq_sum_Ico {m n : ℕ} (f : ℕ → S) :
   where F is a multiple of the conductor. -/
 lemma eq_sum_bernoulli_of_conductor_dvd {F : ℕ} [hF : NeZero F] (m : ℕ) (h : ψ.conductor ∣ F) :
   general_bernoulli_number ψ m = (algebraMap ℚ S) (F^(m - 1 : ℤ)) *
-  (∑ a in Finset.range F, ψ.primitiveCharacter a.succ *
+  (∑ a ∈ Finset.range F, ψ.primitiveCharacter a.succ *
     algebraMap ℚ S ((Polynomial.bernoulli m).eval (a.succ / F : ℚ))) :=
 by
   cases' h with k h
@@ -87,11 +87,11 @@ by
   simp_rw [Finset.sum_Ico_eq_sum_range, ←Nat.mul_sub_left_distrib]-- norm_num.sub_nat_pos (Nat.succ _) _ 1 rfl, mul_one]
   rw [general_bernoulli_number_def]
   have hF : F ≠ 0 := NeZero.ne _ --ne_of_gt (fact_iff.1 hF)
-  have hk1 : k ≠ 0
+  have hk1 : k ≠ 0 := by
   { intro h1
     apply hF
     rw [h, h1, mul_zero] }
-  have hk2 : (k : ℚ) ≠ 0
+  have hk2 : (k : ℚ) ≠ 0 := by
   { norm_cast }
   conv_lhs => --in (primitiveCharacter ψ) --↑(Nat.succ _) * (algebraMap ℚ S) (Polynomial.eval (↑(Nat.succ _) / ↑(conductor ψ)) (Polynomial.bernoulli m)) =>
   { congr
@@ -99,7 +99,7 @@ by
     · apply_congr
       · skip
       · rw [←mul_div_mul_left _ _ hk2, ←mul_div_assoc', Polynomial.bernoulli_eval_mul' _ hk1,
-          (algebraMap _ _).map_mul, (algebraMap _ _).map_sum, ←mul_assoc,
+          (algebraMap _ _).map_mul, map_sum, ←mul_assoc,
           mul_comm (ψ.primitiveCharacter ↑(Nat.succ _)) _, mul_assoc,
           Finset.mul_sum] }
   rw [←Finset.mul_sum, ←mul_assoc]
@@ -113,7 +113,7 @@ by
     apply congr_arg₂
     { apply congr_arg
       rw [←Nat.add_succ]
-      simp only [zero_mul, Nat.cast_add, ZMod.nat_cast_self, zero_add, Nat.cast_mul] }
+      simp only [zero_mul, Nat.cast_add, ZMod.natCast_self, zero_add, Nat.cast_mul] }
     { apply congr_arg
       congr
       rw [←Nat.add_succ, Nat.cast_add, add_div, add_comm, mul_comm]

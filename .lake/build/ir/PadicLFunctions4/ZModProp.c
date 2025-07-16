@@ -1,6 +1,6 @@
 // Lean compiler output
 // Module: PadicLFunctions4.ZModProp
-// Imports: Init Mathlib.RingTheory.WittVector.Compare Mathlib.Data.Opposite
+// Imports: Init Mathlib.RingTheory.WittVector.Compare Mathlib.Data.Opposite Mathlib.Data.ZMod.Basic
 #include <lean/lean.h>
 #if defined(__clang__)
 #pragma clang diagnostic ignored "-Wunused-parameter"
@@ -15,39 +15,39 @@ extern "C" {
 #endif
 lean_object* l_ZMod_commRing(lean_object*);
 lean_object* l_ZMod_fintype(lean_object*, lean_object*);
+static lean_object* l_instTopologicalSpaceZMod__padicLFunctions4___closed__1;
+lean_object* l_TopologicalSpace_instCompleteLattice(lean_object*);
 lean_object* l_Semiring_toMonoidWithZero___rarg(lean_object*);
+LEAN_EXPORT lean_object* l_instTopologicalSpaceZMod__padicLFunctions4(lean_object*);
 LEAN_EXPORT lean_object* l_ZMod_units__fintype(lean_object*);
 extern lean_object* l_UnitsInt_fintype;
 uint8_t lean_nat_dec_eq(lean_object*, lean_object*);
-LEAN_EXPORT lean_object* l_instTopologicalSpaceZMod___boxed(lean_object*);
-static lean_object* l_instTopologicalSpaceZMod___closed__1;
+lean_object* l_instFintypeUnitsOfDecidableEq___rarg(lean_object*, lean_object*, lean_object*);
 lean_object* l_ZMod_decidableEq___boxed(lean_object*, lean_object*, lean_object*);
-lean_object* l_TopologicalSpace_instCompleteLatticeTopologicalSpace(lean_object*);
-LEAN_EXPORT lean_object* l_instTopologicalSpaceZMod(lean_object*);
-lean_object* l_instFintypeUnits___rarg(lean_object*, lean_object*, lean_object*);
-static lean_object* _init_l_instTopologicalSpaceZMod___closed__1() {
+LEAN_EXPORT lean_object* l_instTopologicalSpaceZMod__padicLFunctions4___boxed(lean_object*);
+static lean_object* _init_l_instTopologicalSpaceZMod__padicLFunctions4___closed__1() {
 _start:
 {
 lean_object* x_1; 
-x_1 = l_TopologicalSpace_instCompleteLatticeTopologicalSpace(lean_box(0));
+x_1 = l_TopologicalSpace_instCompleteLattice(lean_box(0));
 return x_1;
 }
 }
-LEAN_EXPORT lean_object* l_instTopologicalSpaceZMod(lean_object* x_1) {
+LEAN_EXPORT lean_object* l_instTopologicalSpaceZMod__padicLFunctions4(lean_object* x_1) {
 _start:
 {
 lean_object* x_2; lean_object* x_3; 
-x_2 = l_instTopologicalSpaceZMod___closed__1;
+x_2 = l_instTopologicalSpaceZMod__padicLFunctions4___closed__1;
 x_3 = lean_ctor_get(x_2, 4);
 lean_inc(x_3);
 return x_3;
 }
 }
-LEAN_EXPORT lean_object* l_instTopologicalSpaceZMod___boxed(lean_object* x_1) {
+LEAN_EXPORT lean_object* l_instTopologicalSpaceZMod__padicLFunctions4___boxed(lean_object* x_1) {
 _start:
 {
 lean_object* x_2; 
-x_2 = l_instTopologicalSpaceZMod(x_1);
+x_2 = l_instTopologicalSpaceZMod__padicLFunctions4(x_1);
 lean_dec(x_1);
 return x_2;
 }
@@ -74,7 +74,7 @@ lean_dec(x_6);
 x_8 = l_ZMod_fintype(x_1, lean_box(0));
 x_9 = lean_alloc_closure((void*)(l_ZMod_decidableEq___boxed), 3, 1);
 lean_closure_set(x_9, 0, x_1);
-x_10 = l_instFintypeUnits___rarg(x_7, x_8, x_9);
+x_10 = l_instFintypeUnitsOfDecidableEq___rarg(x_7, x_8, x_9);
 return x_10;
 }
 else
@@ -89,6 +89,7 @@ return x_11;
 lean_object* initialize_Init(uint8_t builtin, lean_object*);
 lean_object* initialize_Mathlib_RingTheory_WittVector_Compare(uint8_t builtin, lean_object*);
 lean_object* initialize_Mathlib_Data_Opposite(uint8_t builtin, lean_object*);
+lean_object* initialize_Mathlib_Data_ZMod_Basic(uint8_t builtin, lean_object*);
 static bool _G_initialized = false;
 LEAN_EXPORT lean_object* initialize_PadicLFunctions4_ZModProp(uint8_t builtin, lean_object* w) {
 lean_object * res;
@@ -103,8 +104,11 @@ lean_dec_ref(res);
 res = initialize_Mathlib_Data_Opposite(builtin, lean_io_mk_world());
 if (lean_io_result_is_error(res)) return res;
 lean_dec_ref(res);
-l_instTopologicalSpaceZMod___closed__1 = _init_l_instTopologicalSpaceZMod___closed__1();
-lean_mark_persistent(l_instTopologicalSpaceZMod___closed__1);
+res = initialize_Mathlib_Data_ZMod_Basic(builtin, lean_io_mk_world());
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+l_instTopologicalSpaceZMod__padicLFunctions4___closed__1 = _init_l_instTopologicalSpaceZMod__padicLFunctions4___closed__1();
+lean_mark_persistent(l_instTopologicalSpaceZMod__padicLFunctions4___closed__1);
 return lean_io_result_mk_ok(lean_box(0));
 }
 #ifdef __cplusplus

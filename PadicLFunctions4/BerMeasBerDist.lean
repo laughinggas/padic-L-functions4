@@ -28,5 +28,5 @@ variable (p : ℕ) [Fact p.Prime] (d : ℕ) (c : ℕ)
 /-- A Bernoulli measure, as defined by Washington. -/
 noncomputable def bernoulli_distribution (n : ℕ) (a : (ZMod (d * (p^n)))) := (algebraMap ℚ ℚ_[p])
   (Int.fract ((a.val : ℚ) / (d*p^n)) -
-  c * Int.fract (((((((c : ZMod (d * p^(2 * n)))⁻¹).val : ℚ) * (a : ℚ))) : ℚ) / (d * p^n)) +
+  c * Int.fract (((((((c : ZMod (d * p^(2 * n)))⁻¹).val : ℚ) * (a.cast : ℚ))) : ℚ) / (d * p^n)) +
   (c - 1)/2)

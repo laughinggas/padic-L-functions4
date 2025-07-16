@@ -25,7 +25,7 @@ def is_eventually_constant {α : Type*} (a : ℕ → α) : Prop :=
 /-- An eventually constant sequence is a sequence which has the `is_eventually_constant`
   predicate. -/
 @[ext]
-structure eventually_constant_seq (α : Type*) :=
+structure eventually_constant_seq (α : Type*) where
 (to_seq : ℕ → α)
 (is_eventually_const : is_eventually_constant to_seq)
 
@@ -77,7 +77,7 @@ instance [Monoid α] : Monoid (eventually_constant_seq α) :=
   λ x ↦ by ext y; simp only [pow_zero]; rfl,
   λ n a ↦ by
     ext x
-    simp only [add_comm n 1, pow_add, pow_one]
+    simp only [pow_add, pow_one] -- add_comm n 1,
     rfl ⟩
 
 @[to_additive]
@@ -117,7 +117,7 @@ instance {M : Type*} [Monoid M] [AddMonoid α] [DistribMulAction M α] : Distrib
 instance {M : Type*} [Semiring M] [AddCommMonoid α] [Module M α] : Module M (eventually_constant_seq α) :=
   ⟨λ r s a ↦ by
     ext x
-    change (r + s) • _ = r • _ + s • _
+    change (r + s) • a.to_seq x = r • _ + s • _
     rw [add_smul],
   λ a ↦ by
     ext x

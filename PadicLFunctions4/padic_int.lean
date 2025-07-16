@@ -46,7 +46,7 @@ by
 variable (p)
 /-- The Ideal p^n ℤ_[p] is closed -/
 lemma IsClosed_span (n : ℕ) : IsClosed (@Ideal.span ℤ_[p] _ {(p^n : ℤ_[p])} : Set ℤ_[p]) :=
-(@span_eq_closedBall p _ n) ▸ Metric.isClosed_ball
+(@span_eq_closedBall p _ n) ▸ Metric.isClosed_closedBall
 
 variable {p}
 /-- The Ideal p^n ℤ_[p] is the open ball B(0, 1/p^(1 - n)) -/
@@ -65,7 +65,7 @@ lemma isOpen_span (n : ℕ) : IsOpen ((Ideal.span {(p ^ n : ℤ_[p])} : Ideal �
 
 /-- The Ideal p^n ℤ_[p] is clopen -/
 lemma is_clopen_span (n : ℕ) : IsClopen ((Ideal.span {(p ^ n : ℤ_[p])} : Ideal ℤ_[p]) : Set ℤ_[p]) :=
-⟨isOpen_span p n, IsClosed_span p n⟩
+⟨IsClosed_span p n, isOpen_span p n⟩
 
 variable {p}
 -- enable Set addition for additive groups
@@ -74,7 +74,7 @@ open ZMod
 
 -- this is more generally a property of profinite groups
 lemma preimage_toZModPow {n : ℕ} (x : ZMod (p^n)) : (toZModPow n) ⁻¹' {x} =
- {(x : ℤ_[p])} + ((RingHom.ker (toZModPow n) : Ideal ℤ_[p]) : Set ℤ_[p]) :=
+ {(x.cast : ℤ_[p])} + ((RingHom.ker (toZModPow n) : Ideal ℤ_[p]) : Set ℤ_[p]) :=
 by
   ext y
   simp only [Set.image_add_left, Set.mem_preimage, Set.singleton_add, Set.mem_singleton_iff,
@@ -94,54 +94,53 @@ variable (d : ℕ)
 
 /-- The preimage of any singleton under `toZModPow` is clopen. -/
 lemma proj_lim_preimage_clopen {n : ℕ} (a : ZMod (d*(p^n))) :
-  IsClopen (Set.preimage (PadicInt.toZModPow n) {(a : ZMod (p^n))} : Set ℤ_[p]) :=
-⟨continuous_def.mp (continuous_toZModPow n) {(a : ZMod (p^n))} trivial,
-  continuous_iff_isClosed.mp (continuous_toZModPow n) {(a : ZMod (p^n))} (isClosed_discrete {(a : ZMod (p^n))})⟩
+  IsClopen (Set.preimage (PadicInt.toZModPow n) {(a.cast : ZMod (p^n))} : Set ℤ_[p]) :=
+⟨continuous_iff_isClosed.mp (continuous_toZModPow n) {(a.cast : ZMod (p^n))} (isClosed_discrete {(a.cast : ZMod (p^n))}),
+  continuous_def.mp (continuous_toZModPow n) {(a.cast : ZMod (p^n))} trivial⟩
 
 /-- The preimage of any singleton under `toZModPow` is clopen. -/
 lemma proj_lim_preimage_clopen_one (n : ℕ) (a : ZMod (p^n)) :
   IsClopen (Set.preimage (PadicInt.toZModPow n) {a} : Set ℤ_[p]) := by
-  have := @proj_lim_preimage_clopen p _ 1 n a
+  have := @proj_lim_preimage_clopen p _ 1 n (a.cast : ZMod (1 * p^n))
   rw [one_mul] at this
   convert this
   simp
 
 lemma singleton_add_ball {S : Type*} [SeminormedAddCommGroup S] (x y : S) (r : ℝ) :
-  ({x} : Set S) + Metric.ball y r = Metric.ball (x + y) r :=
-by
+  ({x} : Set S) + Metric.ball y r = Metric.ball (x + y) r := by
   ext z
-  have : dist (-x + z) y = dist z (x + y)
-  { simp_rw [dist_eq_norm]
+  have : dist (-x + z) y = dist z (x + y) := by
+    simp_rw [dist_eq_norm]
     refine' congr_arg _ _
-    rw [← sub_sub, sub_eq_add_neg z x, add_comm z _] }
+    rw [← sub_sub, sub_eq_add_neg z x, add_comm z _]
   simp [this, add_comm]
 
 /-- The preimage of a singleton x is a ball centered at x. -/
 lemma preimage_toZModPow_eq_ball {n : ℕ} (x : ZMod (p^n)) :
   (PadicInt.toZModPow n) ⁻¹' {(x : ZMod (p^n))} =
-  Metric.ball (x : ℤ_[p]) ((p : ℝ) ^ (1 - (n : ℤ))) :=
+  Metric.ball (x.cast : ℤ_[p]) ((p : ℝ) ^ (1 - (n : ℤ))) :=
 by { rw [preimage_toZModPow, ker_toZModPow, ←span_eq_open_ball, singleton_add_ball, add_zero] }
 
 open Nat
 
-lemma cast_toZModPow_eq_appr (a : ℤ_[p]) (n : ℕ) : ((toZModPow n a) : ℤ_[p]) = a.appr n :=
+lemma cast_toZModPow_eq_appr (a : ℤ_[p]) (n : ℕ) : ((toZModPow n a).cast : ℤ_[p]) = a.appr n :=
 by
   dsimp [toZModPow, toZModHom]
-  rw [←ZMod.nat_cast_val, ZMod.val_cast_of_lt (appr_lt _ _)]
+  rw [←ZMod.natCast_val, ZMod.val_cast_of_lt (appr_lt _ _)]
 
 variable (p)
-lemma exists_one_div_pow_lt_of_prime {ε : ℝ} (h : (0 < ε)) : ∃ (n : ℕ), (1 / (p^n) : ℝ) < ε :=
-by
+lemma exists_one_div_pow_lt_of_prime {ε : ℝ} (h : (0 < ε)) : ∃ (n : ℕ), (1 / (p^n) : ℝ) < ε := by
   convert exists_pow_lt_of_lt_one h _
   swap
   { exact 1/p }
   { simp only [one_div, inv_pow] }
   have := Prime.two_le (@Fact.out (p.Prime) _)
-  rw [div_lt_iff _];
+  rw [div_lt_one _]; --rw [div_lt_iff _];
   norm_cast;
-  · linarith
-  · simp only [cast_pos]
-    exact Fin.size_pos'
+  norm_cast
+  linarith
+  -- · simp only [cast_pos]
+  --   exact Fin.size_pos'
 
 variable {p}
 lemma dist_appr_spec (a : ℤ_[p]) (n : ℕ) : dist a ((a.appr n) : ℤ_[p]) ≤ (p : ℝ)^(-n : ℤ) :=
@@ -152,33 +151,29 @@ lemma dist_appr_spec (a : ℤ_[p]) (n : ℕ) : dist a ((a.appr n) : ℤ_[p]) ≤
 lemma totally_bounded : TotallyBounded (λ (x : ℚ_[p]) => ‖x‖ ≤ 1) :=
 Metric.totallyBounded_of_finite_discretization (λ ε hε => by
   obtain ⟨m, fm⟩ := exists_one_div_pow_lt_of_prime p (half_pos hε)
-  have f : (2 : ℝ) / (p^m) = (1 / (p^m)) + (1 : ℝ) / (p^m)
-  { rw [← _root_.add_div, one_add_one_eq_two.symm] }
-  have fm' : (2 : ℝ)/(p^m) < ε
-  { rw [f, ← add_halves ε]
-    apply _root_.add_lt_add fm fm }
-  have f' : ↑p ^ (1 - (m.succ : ℤ)) = (1 : ℝ) / (p^m)
-  { symm
-    rw [div_eq_iff _, ←zpow_coe_nat, ← zpow_add₀ _]
+  have f : (2 : ℝ) / (p^m) = (1 / (p^m)) + (1 : ℝ) / (p^m) := by
+   rw [← _root_.add_div, one_add_one_eq_two.symm]
+  have fm' : (2 : ℝ)/(p^m) < ε := by
+    rw [f, ← add_halves ε]
+    apply _root_.add_lt_add fm fm
+  have f' : ↑p ^ (1 - (m.succ : ℤ)) = (1 : ℝ) / (p^m) := by
+    symm
+    rw [div_eq_iff _]
     · norm_num
-    · norm_cast
-      apply Nat.Prime.ne_zero _
-      exact Fact.out
     · apply pow_ne_zero
       norm_cast
       apply Nat.Prime.ne_zero _
-      exact Fact.out }
-  have f'' : ↑p ^ (-(m.succ : ℤ)) < (1 : ℝ) / (p^m)
-  { rw [div_eq_inv_mul, mul_one, zpow_neg, inv_lt_inv]
-    { rw [zpow_coe_nat]
-      apply pow_lt_pow_right _ (lt_add_one _)
-      norm_cast
+      exact Fact.out
+  have f'' : ↑p ^ (-(m.succ : ℤ)) < (1 : ℝ) / (p^m) := by
+    rw [div_eq_inv_mul, mul_one, zpow_neg, inv_lt_inv₀]
+    norm_cast
+    { apply pow_lt_pow_right₀ _ (lt_add_one _)
       apply Nat.Prime.one_lt Fact.out }
     any_goals { norm_cast
                 apply pow_pos
                 apply Nat.Prime.pos
                 rw [fact_iff] at *
-                assumption } }
+                assumption }
   refine' ⟨ZMod (p^m.succ), @ZMod.fintype _ NeZero.pow, toZModPow m.succ, λ x y h =>
     lt_trans (gt_of_gt_of_ge _ (dist_triangle x (appr y m.succ : ℤ_[p]) y)) fm'⟩
   rw [←Set.mem_singleton_iff, ←Set.mem_preimage, preimage_toZModPow_eq_ball, Metric.mem_ball,
@@ -199,10 +194,9 @@ instance : TotallySeparatedSpace ℤ_[p] :=
     { contrapose ne
       push_neg at ne
       rw [ext_of_toZModPow] at ne
-      simp only [ne, _root_.Ne.def, eq_self_iff_true, not_true, not_false_iff] }
+      simp only [ne, ne_eq, not_true_eq_false, not_false_eq_true] }
     obtain ⟨u, v, hu, hv, memu, memv, univ, disj⟩ :=
-      (@TotallySeparatedSpace.isTotallySeparated_univ (ZMod (p ^ n))) (toZModPow n x)
-      (Set.mem_univ _) (toZModPow n y) (Set.mem_univ _) hn
+      (@TotallySeparatedSpace.isTotallySeparated_univ (ZMod (p ^ n)) _ _) (Set.mem_univ _) (Set.mem_univ _) hn
     refine' ⟨(toZModPow n)⁻¹' u, (toZModPow n)⁻¹' v,
       continuous_def.mp (continuous_toZModPow n) u hu,
       continuous_def.mp (continuous_toZModPow n) v hv,
@@ -218,8 +212,7 @@ instance : TotallySeparatedSpace ℤ_[p] :=
 
 lemma proj_lim_preimage_clopen' {n : ℕ} (a : ZMod (p^n)) :
   IsClopen (Set.preimage (PadicInt.toZModPow n) {a} : Set ℤ_[p]) :=
-⟨continuous_def.mp (continuous_toZModPow n) {a} trivial,
-  continuous_iff_isClosed.mp (continuous_toZModPow n) {a} (by simp)⟩
+⟨continuous_iff_isClosed.mp (continuous_toZModPow n) {a} (by simp), continuous_def.mp (continuous_toZModPow n) {a} trivial⟩
 
 --variable {p}
 
@@ -235,13 +228,13 @@ lemma inv_mem_inv_ball {x z : Units ℤ_[p]} {r : ℝ} (h : r ≤ 1) (hz : z.val
   z.inv ∈ Metric.ball x.inv r :=
 by
   rw [mem_ball_iff_norm]
-  suffices : ‖z.val * x.val‖ * ‖z.inv - x.inv‖ < r
-  { rw [PadicInt.norm_mul, isUnit_iff.1 (ball_mem_unit (Units.isUnit _) hz h),
-      isUnit_iff.1 (Units.isUnit x), one_mul, one_mul] at this
-    exact this }
-  { rw [←PadicInt.norm_mul, mul_sub, mul_right_comm, mul_assoc _ x.val _, Units.val_inv,
+  have : ‖z.val * x.val‖ * ‖z.inv - x.inv‖ < r := by
+    rw [←norm_mul, mul_sub, mul_right_comm, mul_assoc _ x.val _, Units.val_inv,
       Units.val_inv, one_mul, mul_one, norm_sub_rev]
-    exact mem_ball_iff_norm.1 hz }
+    exact mem_ball_iff_norm.1 hz
+  rw [norm_mul, isUnit_iff.1 (ball_mem_unit (Units.isUnit _) hz h),
+      isUnit_iff.1 (Units.isUnit x), one_mul, one_mul] at this
+  exact this
 
 lemma top_eq_if_cont_inv' {α : Type*} [TopologicalSpace α] [Monoid α]
  (h : @Continuous _ _ (TopologicalSpace.induced (Units.coeHom α) inferInstance)
@@ -251,7 +244,7 @@ continuous_iff_le_induced.1 (by
   -- if I replace this with refine or try to bring it into term mode, I get an incorrect typeclass
   -- instance synthesized error
   have h1 := @Continuous.comp _ _ _ (TopologicalSpace.induced ((Units.coeHom α)) inferInstance) _ _ _ _ MulOpposite.continuous_op h
-  apply @Continuous.prod_mk _ _ _ _ _ (TopologicalSpace.induced ((Units.coeHom α)) inferInstance) _ _ continuous_induced_dom h1)
+  apply @Continuous.prodMk _ _ _ _ _ (TopologicalSpace.induced ((Units.coeHom α)) inferInstance) _ _ continuous_induced_dom h1)
 
 example {α : Type u} [Monoid α] (a : αˣ) : a.inv = ↑a⁻¹ := rfl
 
@@ -262,7 +255,7 @@ lemma cont_inv : @Continuous _ _ (TopologicalSpace.induced (Units.coeHom ℤ_[p]
   -- structure on the Units
   rw [continuous_def]
   intros s hs
-  rw [@isOpen_iff_forall_mem_open _ _ (TopologicalSpace.induced (⇑(Units.coeHom ℤ_[p])) inferInstance)]
+  rw [@isOpen_iff_forall_mem_open _ (TopologicalSpace.induced (⇑(Units.coeHom ℤ_[p])) inferInstance)]
   intros x hx
   rw [Metric.isOpen_iff] at hs
   obtain ⟨r, r_pos, hs⟩ := hs _ hx
@@ -290,12 +283,11 @@ lemma cont_inv : @Continuous _ _ (TopologicalSpace.induced (Units.coeHom ℤ_[p]
 lemma top_eq_iff_cont_inv {α : Type*} [Monoid α] [TopologicalSpace α] :
   TopologicalSpace.induced (Units.coeHom α) inferInstance = Units.instTopologicalSpaceUnits ↔
     @Continuous _ _ (TopologicalSpace.induced (Units.coeHom α) inferInstance)
-      inferInstance (@Units.inv α _) :=
-by
+      inferInstance (@Units.inv α _) := by
   refine' ⟨λ h => _, λ h =>
     le_antisymm (top_eq_if_cont_inv' h) (continuous_iff_le_induced.1 Units.continuous_val)⟩
   rw [h]
-  have h1 : Prod.snd ∘ (Units.embedProduct α) = MulOpposite.op ∘ Units.val ∘ Units.instInv.inv
+  have h1 : Prod.snd ∘ (Units.embedProduct α) = MulOpposite.op ∘ Units.val ∘ Units.instInv.inv := by
   { ext
     rw [Units.embedProduct]
     simp only [Function.comp_apply, MonoidHom.coe_mk]
@@ -313,12 +305,12 @@ by
   refine' isOpen_iff_forall_mem_open.2 (λ x hx => _)
   rcases hx with ⟨y, hy, hyx⟩
   change (y : ℤ_[p]) = x at hyx
-  have memt : x ∈ t
+  have memt : x ∈ t := by
   { rw [←htU, Set.mem_preimage, Units.coeHom_apply, hyx] at hy
     apply hy }
   rw [Metric.isOpen_iff] at ht
   obtain ⟨r, r_pos, ht⟩ := ht x memt
-  have is_unit_x : IsUnit x
+  have is_unit_x : IsUnit x := by
   { rw [←hyx]
     simp only [Units.isUnit] }
   by_cases h : r ≤ 1
@@ -331,14 +323,13 @@ by
 
 
 lemma isOpen_coe' : IsOpenMap (Units.coeHom (ZMod d)) :=
-Inducing.isOpenMap { induced := (top_eq_iff_cont_inv.2 (by
+Topology.IsInducing.isOpenMap { eq_induced := (top_eq_iff_cont_inv.2 (by
   convert continuous_of_discreteTopology
   apply DiscreteTopology_induced
   exact Units.ext )).symm } trivial
 
-lemma IsClosed_coe : IsClosed (Set.range (Units.coeHom ℤ_[p])) :=
-by
-  have : Set.range (Units.coeHom ℤ_[p]) = Set.preimage norm {1}
+lemma IsClosed_coe : IsClosed (Set.range (Units.coeHom ℤ_[p])) := by
+  have : Set.range (Units.coeHom ℤ_[p]) = Set.preimage norm {1} := by
   { ext x
     simp only [Set.mem_range, Set.mem_preimage, Set.mem_singleton_iff]
     rw [←isUnit_iff]
@@ -346,28 +337,28 @@ by
     simp only [Units.coeHom_apply, IsUnit.unit_spec, h] } --last step not needed before
   { refine' this.symm ▸ continuous_iff_isClosed.mp continuous_norm {1} (T1Space.t1 1) }
 
-lemma emb_coe : Embedding (Units.coeHom ℤ_[p]) :=
-{ induced := (top_eq_iff_cont_inv.2 cont_inv).symm
-  inj := Units.ext }
+lemma emb_coe : Topology.IsEmbedding (Units.coeHom ℤ_[p]) :=
+{ eq_induced := (top_eq_iff_cont_inv.2 cont_inv).symm
+  injective := Units.ext }
 
-lemma open_embedding_coe : OpenEmbedding (Units.coeHom ℤ_[p]) :=
+lemma open_embedding_coe : Topology.IsOpenEmbedding (Units.coeHom ℤ_[p]) :=
 ⟨emb_coe, (isOpen_coe).isOpen_range⟩
 
 instance : CompactSpace ℤ_[p]ˣ :=
-{ isCompact_univ := (Embedding.isCompact_iff emb_coe).2
+{ isCompact_univ := (Topology.IsEmbedding.isCompact_iff emb_coe).2
    (IsCompact.of_isClosed_subset isCompact_univ
    ((@Set.image_univ ℤ_[p]ˣ ℤ_[p] (Units.coeHom _)).symm ▸ IsClosed_coe) (Set.subset_univ _)) }
 
-instance : T2Space ℤ_[p]ˣ := Embedding.t2Space emb_coe
+instance : T2Space ℤ_[p]ˣ := Topology.IsEmbedding.t2Space emb_coe
 
 instance : TotallyDisconnectedSpace ℤ_[p]ˣ :=
-{ isTotallyDisconnected_univ := Embedding.isTotallyDisconnected emb_coe
+{ isTotallyDisconnected_univ := Topology.IsEmbedding.isTotallyDisconnected emb_coe
     (isTotallyDisconnected_of_totallyDisconnectedSpace (Units.coeHom _ '' Set.univ)) }
 
 open scoped Pointwise -- needed for has_add (Set ℤ_[p])
 
 lemma preimage_toZMod (x : ZMod p) : (@toZMod p _) ⁻¹' {x} =
- {(x : ℤ_[p])} + ((RingHom.ker (@toZMod p _) : Ideal ℤ_[p]) : Set ℤ_[p]) :=
+ {(x.cast : ℤ_[p])} + ((RingHom.ker (@toZMod p _) : Ideal ℤ_[p]) : Set ℤ_[p]) :=
 by
 -- one has to use cast to use preimage_toZModPow
   ext y
@@ -401,7 +392,7 @@ lemma is_unit_padic_of_is_unit_ZMod {x : ℕ} (h : x.Coprime p) :
 
 lemma nat_is_unit_of_not_dvd {z : ℕ} (h : ¬ p ∣ z) : IsUnit (z : ℤ_[p]) := by
   contrapose h
-  rw [not_not, ←Int.coe_nat_dvd, ←PadicInt.norm_int_lt_one_iff_dvd]
+  rw [not_not, ←Int.natCast_dvd_natCast, ←PadicInt.norm_int_lt_one_iff_dvd]
   apply PadicInt.mem_nonunits.1 h
 
 lemma cont_Units_map {α β : Type*} [TopologicalSpace α] [Monoid α] [TopologicalSpace β] [Monoid β]
@@ -425,8 +416,7 @@ cont_Units_map cont_inv induced_top_cont_inv (PadicInt.continuous_toZModPow n)
 
 lemma proj_lim_preimage_Units_clopen {n : ℕ} (a : (ZMod (p^n))ˣ) :
   IsClopen ((Units.map (@PadicInt.toZModPow p _ n).toMonoidHom) ⁻¹' {a}) :=
-⟨continuous_def.mp (continuous_Units n) {a} (isOpen_discrete _),
-  continuous_iff_isClosed.mp (continuous_Units n) {a} (isClosed_discrete {a})⟩
+⟨continuous_iff_isClosed.mp (continuous_Units n) {a} (isClosed_discrete {a}), continuous_def.mp (continuous_Units n) {a} (isOpen_discrete _)⟩
 
 variable (p)
 lemma not_is_unit_p (n : ℕ) [NeZero n] : ¬ IsUnit (p : ZMod (p^n)) := by
@@ -445,7 +435,7 @@ lemma not_is_unit_p (n : ℕ) [NeZero n] : ¬ IsUnit (p : ZMod (p^n)) := by
     conv =>
     { congr
       rw [← pow_one p] }
-    rw [pow_lt_pow_iff_right _]
+    rw [pow_lt_pow_iff_right₀ _]
     apply hn'
     apply Nat.Prime.one_lt Fact.out
 
